@@ -1,447 +1,533 @@
-import { logger } from '@/utils/logging';
+// ABOUTME: Exam sessions page — a session is a canonical assessment, the row marks are entered
+// ABOUTME: against. Listing, creating, editing and status changes all go through the repository;
+// ABOUTME: the date window and the papers of a session are set on the Scheduling tab.
 
-// ABOUTME: This page component allows users to manage exam sessions and their paper settings.
-// ABOUTME: CRUD goes through the academics module context; period and paper ids stay strings, names resolve at read time.
-
-import React, { useCallback, useState, useMemo } from 'react';
-import { ExamSessionStatus } from '../data/types';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAcademicDataContext } from '../data/AcademicDataContext';
+
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Checkbox from '@/components/ui/Checkbox';
+import Input from '@/components/ui/Input';
+import Spinner from '@/components/ui/Spinner';
+import { EntityPicker } from '@/components/ui/EntityPicker';
+import { DataGrid, type DataGridColumn } from '@/components/ui/data';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useLookup } from '@/data/query';
+import { type CreateInput, type UpdateInput } from '@/data/repository';
+import { ASSESSMENT_KINDS, ASSESSMENT_STATUSES } from '@/domain/schema';
+import { asId, type Id } from '@/domain/ids';
+import { useCan } from '@/data/auth/useCan';
 import { useToast } from '@/hooks/useToast';
-import { LegacyDataNotice } from '@/components/LegacyDataNotice';
+import { classGroupLabel, periodLabel } from '@/utils/academicLabels';
 
-type Id = string | number;
+import { CanonicalRepositoryProvider } from '../data/canonicalRepository';
+import { messageOf } from '../data/errors';
+import {
+  useCanonicalAcademics,
+  type AcademicPeriodRow,
+  type AssessmentRow,
+} from '../data/useCanonicalAcademics';
 
-interface ExamPaperSetting {
-  id: string;
-  exam_session_id: string;
-  subject_paper_id: string;
-  marks_out_of: number;
-  weight_percentage: number;
-  subject_name: string;
-  subject_paper_name: string;
+type AssessmentKind = (typeof ASSESSMENT_KINDS)[number];
+type AssessmentStatus = (typeof ASSESSMENT_STATUSES)[number];
+
+interface SessionDraft {
+  readonly name: string;
+  readonly academicPeriodId: Id<'academic_period'> | null;
+  readonly kind: AssessmentKind;
+  readonly status: AssessmentStatus;
+  readonly levelIds: readonly string[];
+  readonly classGroupIds: readonly string[];
+  readonly learningAreaIds: readonly string[];
 }
 
-interface ExamSession {
-  id: string;
-  name: string;
-  school_period_id: string;
-  school_period_name: string;
-  status: ExamSessionStatus;
-  paper_settings: ExamPaperSetting[];
+/** A new session starts open: marks entry offers every assessment that is not a draft. */
+const EMPTY_DRAFT: SessionDraft = {
+  name: '',
+  academicPeriodId: null,
+  kind: 'end_term',
+  status: 'open',
+  levelIds: [],
+  classGroupIds: [],
+  learningAreaIds: [],
+};
+
+/** The same list with `id` added or removed, so a checkbox list stays a set of ids. */
+function toggled(ids: readonly string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((current) => current !== id) : [...ids, id];
 }
 
-interface StoredSession {
-  id: Id;
-  name: string;
-  school_period_id?: Id | null;
-  school_period_name?: string | null;
-  status: ExamSessionStatus;
-  paper_settings?: Array<{ id: Id; subject_paper_id?: Id | null; marks_out_of: number; weight_percentage: number; subject_name?: string | null; subject_paper_name?: string | null }>;
-}
-interface PeriodRecord { id: Id; name?: string | null; period_definition_id?: Id | null; period_definition_name?: string | null; start_date?: string | null; is_active?: boolean }
-interface PaperRecord { id: Id; name?: string | null; subject_id?: Id | null; subject_name?: string | null }
-interface Named { id: Id; name?: string | null }
-
-interface ExamSessionFormData {
-  name?: string;
-  school_period_id?: string;
-  status: ExamSessionStatus;
-}
-
-interface PaperSettingFormData {
-  subject_paper_id?: string;
-  marks_out_of?: number;
-  weight_percentage?: number;
-}
-
-const idOf = (value: Id | null | undefined): string => (value == null ? '' : String(value));
-
-export const ExamSessionsPageContent: React.FC = () => {
+const ExamSessionList: React.FC = () => {
   const { t } = useTranslation('academics');
-  const academic = useAcademicDataContext();
-  const {
-    addExamSession,
-    updateExamSession,
-    deleteExamSession,
-    addExamPaperSetting,
-    updateExamPaperSetting,
-    deleteExamPaperSetting
-  } = academic;
-  const [isSaving, setIsSaving] = useState(false);
-
-  const schoolPeriods = useMemo(() => (academic.schoolPeriods ?? []) as unknown as PeriodRecord[], [academic.schoolPeriods]);
-  const periodDefinitions = useMemo(() => (academic.academicPeriodDefinitions ?? []) as unknown as Named[], [academic.academicPeriodDefinitions]);
-  const subjects = useMemo(() => (academic.subjects ?? []) as Named[], [academic.subjects]);
-  const subjectPapers = useMemo(() => ((academic.subjectPapers ?? []) as PaperRecord[]).map(paper => ({
-    id: idOf(paper.id),
-    name: paper.name ?? '',
-    subject_name: subjects.find(s => idOf(s.id) === idOf(paper.subject_id))?.name ?? paper.subject_name ?? '',
-  })), [academic.subjectPapers, subjects]);
-
-  const periodLabel = useCallback((period: PeriodRecord) =>
-    period.name || period.period_definition_name
-    || periodDefinitions.find(d => idOf(d.id) === idOf(period.period_definition_id))?.name
-    || period.start_date || idOf(period.id), [periodDefinitions]);
-
-  const examSessions = useMemo<ExamSession[]>(() =>
-    ((academic.examSessions ?? []) as unknown as StoredSession[]).map(session => {
-      const period = schoolPeriods.find(sp => idOf(sp.id) === idOf(session.school_period_id));
-      return {
-        id: idOf(session.id),
-        name: session.name,
-        school_period_id: idOf(session.school_period_id),
-        school_period_name: (period ? periodLabel(period) : session.school_period_name) ?? '',
-        status: session.status,
-        paper_settings: (session.paper_settings ?? []).map(setting => {
-          const paper = subjectPapers.find(p => p.id === idOf(setting.subject_paper_id));
-          return {
-            id: idOf(setting.id),
-            exam_session_id: idOf(session.id),
-            subject_paper_id: idOf(setting.subject_paper_id),
-            marks_out_of: setting.marks_out_of,
-            weight_percentage: setting.weight_percentage,
-            subject_name: paper?.subject_name || setting.subject_name || '',
-            subject_paper_name: paper?.name || setting.subject_paper_name || '',
-          };
-        }),
-      };
-    }), [academic.examSessions, schoolPeriods, periodLabel, subjectPapers]);
-
-  const defaultPeriodId = idOf((schoolPeriods.find(sp => sp.is_active) ?? schoolPeriods[0])?.id) || undefined;
-
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
-  const [isPaperSettingModalOpen, setIsPaperSettingModalOpen] = useState(false);
-  
-  const [editingSession, setEditingSession] = useState<ExamSession | null>(null);
-  const [currentSessionForPapers, setCurrentSessionForPapers] = useState<ExamSession | null>(null);
-  const [editingPaperSetting, setEditingPaperSetting] = useState<ExamPaperSetting | null>(null);
-  
-  const initialSessionFormData: ExamSessionFormData = { 
-    name: '', 
-    school_period_id: defaultPeriodId,
-    status: ExamSessionStatus.PLANNING 
-  };
-  const [sessionFormData, setSessionFormData] = useState<ExamSessionFormData>(initialSessionFormData);
-
-  const initialPaperSettingFormData: PaperSettingFormData = { subject_paper_id: undefined, marks_out_of: 100, weight_percentage: 100 };
-  const [paperSettingFormData, setPaperSettingFormData] = useState<PaperSettingFormData>(initialPaperSettingFormData);
-
-  const activeSessionForPapers = useMemo(() => {
-    if (!currentSessionForPapers) {
-      return null;
-    }
-
-    return examSessions.find((session) => session.id === currentSessionForPapers.id) || currentSessionForPapers;
-  }, [currentSessionForPapers, examSessions]);
-
-  // Session Modal
-  const openSessionModal = (session?: ExamSession) => {
-    setEditingSession(session || null);
-    setSessionFormData(session ? 
-      { name: session.name, school_period_id: session.school_period_id, status: session.status } : 
-      {...initialSessionFormData, school_period_id: defaultPeriodId }
-    );
-    setIsSessionModalOpen(true);
-  };
-  const closeSessionModal = () => {
-    setIsSessionModalOpen(false);
-    setEditingSession(null);
-    setSessionFormData(initialSessionFormData);
-  };
-
-  // Paper Setting Modal
-  const openPaperSettingModal = (session: ExamSession, setting?: ExamPaperSetting) => {
-    setCurrentSessionForPapers(session);
-    setEditingPaperSetting(setting || null);
-    setPaperSettingFormData(setting ? 
-      { subject_paper_id: setting.subject_paper_id, marks_out_of: setting.marks_out_of, weight_percentage: setting.weight_percentage } : 
-      initialPaperSettingFormData
-    );
-    setIsPaperSettingModalOpen(true);
-  };
-  const closePaperSettingModal = () => {
-    setIsPaperSettingModalOpen(false);
-    setEditingPaperSetting(null);
-    setCurrentSessionForPapers(null);
-    setPaperSettingFormData(initialPaperSettingFormData);
-  };
-
-  const handleSessionInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setSessionFormData(prev => ({ 
-        ...prev, 
-        [name]: name === 'school_period_id' ? (value || undefined) : value
-    }));
-  };
-
-  const handlePaperSettingInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setPaperSettingFormData(prev => ({ 
-        ...prev, 
-        [name]: name === 'marks_out_of' || name === 'weight_percentage'
-          ? (value === '' ? undefined : parseFloat(value))
-          : (value || undefined)
-    }));
-  };
-
-  const handleSessionSubmit = async () => {
-    if (!sessionFormData.name || !sessionFormData.school_period_id) {
-      toast.showWarning(t('validation.examSessionNameAndSchoolPeriodAreRequired'));
-      return;
-    }
-    const payload = {
-      name: sessionFormData.name,
-      school_period_id: sessionFormData.school_period_id,
-      status: sessionFormData.status,
-    };
-
-    setIsSaving(true);
-    try {
-      if (editingSession) {
-        await updateExamSession(editingSession.id, payload as never);
-      } else {
-        await addExamSession(payload as never);
-      }
-      closeSessionModal();
-    } catch (error) {
-      logger.error('Failed to save exam session:', error);
-      toast.showError('Unable to save the exam session. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-  
-  const handlePaperSettingSubmit = async () => {
-    if (!activeSessionForPapers || !paperSettingFormData.subject_paper_id || paperSettingFormData.marks_out_of === undefined || paperSettingFormData.weight_percentage === undefined) {
-      toast.showWarning(t('validation.subjectPaperMarksOutOfAndWeightPercentageAreRequired'));
-      return;
-    }
-
-    const marksOutOf = Number(paperSettingFormData.marks_out_of);
-    const weightPercentage = Number(paperSettingFormData.weight_percentage);
-    const hasDuplicatePaper = (activeSessionForPapers.paper_settings || []).some((setting) =>
-      setting.subject_paper_id === paperSettingFormData.subject_paper_id &&
-      setting.id !== editingPaperSetting?.id
-    );
-
-    if (marksOutOf <= 0 || weightPercentage <= 0) {
-      toast.showWarning('Marks out of and weight percentage must be greater than zero.');
-      return;
-    }
-
-    if (hasDuplicatePaper) {
-      toast.showError('This subject paper is already configured for the selected exam session.');
-      return;
-    }
-
-    const payload = {
-      exam_session_id: activeSessionForPapers.id,
-      subject_paper_id: paperSettingFormData.subject_paper_id,
-      marks_out_of: marksOutOf,
-      weight_percentage: weightPercentage,
-    };
-
-    try {
-      if (editingPaperSetting) {
-        await updateExamPaperSetting(editingPaperSetting.id, payload as never);
-      } else {
-        await addExamPaperSetting(payload as never);
-      }
-      setEditingPaperSetting(null); 
-      setPaperSettingFormData(initialPaperSettingFormData); 
-    } catch (error) {
-      logger.error('Failed to save exam paper setting:', error);
-      toast.showError('Unable to save the paper setting. Please try again.');
-    }
-  };
-
-  const confirm = useConfirm();
-  const handleDeleteSession = async (id: string) => {
-    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this exam session? This will also delete all its paper settings and might affect related results.' }))) {
-      try {
-        await deleteExamSession(id);
-      } catch (error) {
-        logger.error('Failed to delete exam session:', error);
-        toast.showError('Unable to delete the exam session. Please try again.');
-      }
-    }
-  };
-
   const toast = useToast();
-  const handleDeletePaperSetting = async (paperSettingId: string) => {
-      if (!activeSessionForPapers) return;
-      if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this paper setting?' }))) {
-          try {
-            await deleteExamPaperSetting(paperSettingId);
-          } catch (error) {
-            logger.error('Failed to delete exam paper setting:', error);
-            toast.showError('Unable to delete the paper setting. Please try again.');
-          }
-      }
+  const confirm = useConfirm();
+  const {
+    repository,
+    institutionId,
+    isLoading,
+    assessments,
+    academicPeriods,
+    academicYearById,
+    levels,
+    classGroups,
+    learningAreas,
+  } = useCanonicalAcademics();
+
+  // An assessment is the school's exam setup, so assessment.write gates the controls.
+  const canEdit = useCan('assessment.write');
+
+  const periodLookup = useLookup(repository, 'academic_period', {
+    label: (row) =>
+      periodLabel({
+        name: row.name,
+        academicYear: academicYearById.get(row.academic_year_id)?.name,
+      }),
+  });
+
+  const [editing, setEditing] = useState<AssessmentRow | null>(null);
+  const [draft, setDraft] = useState<SessionDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const academicPeriodById = useMemo<ReadonlyMap<string, AcademicPeriodRow>>(
+    () => new Map(academicPeriods.map((period) => [period.id, period] as const)),
+    [academicPeriods]
+  );
+  const categoryName = (id: string) => {
+    const period = academicPeriodById.get(id);
+    return period
+      ? periodLabel({
+          name: period.name,
+          academicYear: academicYearById.get(period.academic_year_id)?.name,
+        })
+      : id;
+  };
+  const levelName = (id: string) => levels.find((level) => level.id === id)?.name ?? id;
+  const classGroupName = (id: string) => {
+    const group = classGroups.find((row) => row.id === id);
+    return group
+      ? classGroupLabel({ gradeLevel: levelName(group.level_id), name: group.name })
+      : id;
+  };
+  const learningAreaName = (id: string) => learningAreas.find((area) => area.id === id)?.name ?? id;
+
+  const startNew = () => {
+    setEditing(null);
+    setFormError(null);
+    setDraft(EMPTY_DRAFT);
   };
 
-  const sessionColumns: DataGridColumn<ExamSession>[] = [
-    { key: 'id', header: 'ID' },
-    { key: 'name', header: 'Exam Session Name' },
-    { key: 'school_period_name', header: 'School Period' },
-    { key: 'status', header: 'Status', 
-        render: (_value: any, item: ExamSession) => {
-            let colorClass = 'bg-gray-200 text-surface-foreground';
-            if (item.status === ExamSessionStatus.PLANNING) colorClass = 'bg-primary-100 text-primary-800';
-            else if (item.status === ExamSessionStatus.MARKS_ENTRY_OPEN) colorClass = 'bg-yellow-100 text-yellow-800';
-            else if (item.status === ExamSessionStatus.PUBLISHED) colorClass = 'bg-green-100 text-green-800';
-            return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
-        }
+  const startEdit = (row: AssessmentRow) => {
+    setEditing(row);
+    setFormError(null);
+    setDraft({
+      name: row.name,
+      academicPeriodId: asId<'academic_period'>(row.academic_period_id),
+      kind: row.kind,
+      status: row.status,
+      levelIds: row.level_ids,
+      classGroupIds: row.class_group_ids,
+      learningAreaIds: row.learning_area_ids,
+    });
+  };
+
+  const closeForm = () => {
+    setDraft(null);
+    setEditing(null);
+    setFormError(null);
+  };
+
+  const submit = async () => {
+    if (!draft) return;
+    const name = draft.name.trim();
+    if (name === '') {
+      setFormError('Name the session.');
+      return;
+    }
+    if (!draft.academicPeriodId) {
+      setFormError('Choose the academic period the session runs in.');
+      return;
+    }
+    if (draft.learningAreaIds.length === 0) {
+      setFormError(
+        'Choose at least one learning area: marks entry offers a session per learning area.'
+      );
+      return;
+    }
+    if (institutionId === null) {
+      setFormError(
+        'The canonical database holds no institution row, so a session cannot be saved yet.'
+      );
+      return;
+    }
+
+    setSaving(true);
+    setFormError(null);
+    try {
+      if (editing) {
+        const patch: UpdateInput<'assessment'> = {
+          academic_period_id: draft.academicPeriodId,
+          kind: draft.kind,
+          name,
+          level_ids: [...draft.levelIds],
+          class_group_ids: [...draft.classGroupIds],
+          learning_area_ids: [...draft.learningAreaIds],
+          status: draft.status,
+        };
+        await repository.update('assessment', asId<'assessment'>(editing.id), patch, {
+          expectedVersion: editing.rowVersion,
+        });
+        toast.showSuccess('Exam session saved.');
+      } else {
+        const payload: CreateInput<'assessment'> = {
+          institution_id: institutionId,
+          academic_period_id: draft.academicPeriodId,
+          kind: draft.kind,
+          name,
+          level_ids: [...draft.levelIds],
+          class_group_ids: [...draft.classGroupIds],
+          learning_area_ids: [...draft.learningAreaIds],
+          component_ids: [],
+          status: draft.status,
+        };
+        await repository.create('assessment', payload);
+        toast.showSuccess('Exam session created.');
+      }
+      closeForm();
+    } catch (error) {
+      setFormError(messageOf(error));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (row: AssessmentRow) => {
+    const confirmed = await confirm({
+      variant: 'danger',
+      message: `Delete the session ${row.name}? Marks already entered against it are not deleted with it.`,
+    });
+    if (!confirmed) return;
+    try {
+      await repository.remove('assessment', asId<'assessment'>(row.id), {
+        expectedVersion: row.rowVersion,
+      });
+      toast.showSuccess('Exam session deleted.');
+    } catch (error) {
+      toast.showError(messageOf(error));
+    }
+  };
+
+  const columns: DataGridColumn<AssessmentRow>[] = [
+    { key: 'name', header: 'Session', sortable: true, filterable: true },
+    {
+      key: 'academic_period_id',
+      header: 'Period',
+      sortable: true,
+      filterable: true,
+      render: (_value: unknown, row: AssessmentRow) => categoryName(row.academic_period_id),
     },
-    { key: 'papers_configured_count', header: 'Papers Configured', render: (_value: any, item: ExamSession) => item.paper_settings?.length || 0 },
+    {
+      key: 'kind',
+      header: 'Kind',
+      render: (_value: unknown, row: AssessmentRow) => row.kind.replace(/_/g, ' '),
+    },
+    {
+      key: 'level_ids',
+      header: 'Levels',
+      render: (_value: unknown, row: AssessmentRow) =>
+        row.level_ids.length > 0 ? row.level_ids.map(levelName).join(', ') : 'All levels',
+    },
+    {
+      key: 'class_group_ids',
+      header: 'Classes',
+      render: (_value: unknown, row: AssessmentRow) =>
+        row.class_group_ids.length > 0
+          ? row.class_group_ids.map(classGroupName).join(', ')
+          : 'All classes',
+    },
+    {
+      key: 'learning_area_ids',
+      header: 'Learning areas',
+      render: (_value: unknown, row: AssessmentRow) =>
+        row.learning_area_ids.length > 0
+          ? row.learning_area_ids.map(learningAreaName).join(', ')
+          : '—',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (_value: unknown, row: AssessmentRow) => (
+        <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-surface-foreground">
+          {row.status.replace(/_/g, ' ')}
+        </span>
+      ),
+    },
+    {
+      key: 'date_window',
+      header: 'Window',
+      render: (_value: unknown, row: AssessmentRow) =>
+        row.date_window ? `${row.date_window.start_date} → ${row.date_window.end_date}` : '—',
+    },
     {
       key: 'actions',
       header: 'Actions',
-      render: (_value: any, item: ExamSession) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openSessionModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="secondary" onClick={() => openPaperSettingModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Papers</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteSession(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      render: (_value: unknown, row: AssessmentRow) => (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => startEdit(row)}
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            {t('common:edit', 'Edit')}
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => void remove(row)}
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            {t('common:delete', 'Delete')}
+          </Button>
         </div>
       ),
     },
-  ];
+  ].filter((column) => canEdit || column.key !== 'actions') as DataGridColumn<AssessmentRow>[];
 
-  const paperSettingColumns: DataGridColumn<ExamPaperSetting>[] = [
-    { key: 'subject_name', header: 'Subject'},
-    { key: 'subject_paper_name', header: 'Paper'},
-    { key: 'marks_out_of', header: 'Marks Out Of' },
-    { key: 'weight_percentage', header: 'Weight (%)' },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (_value: any, item: ExamPaperSetting) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => activeSessionForPapers && openPaperSettingModal(activeSessionForPapers, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeletePaperSetting(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
-        </div>
-      ),
-    },
-  ];
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
-return (
+  return (
     <div className="space-y-3">
-      <LegacyDataNotice>A session created here is not an assessment marks can be entered against.</LegacyDataNotice>
-      <Card title="Exam Sessions Management" actions={
-        <Button onClick={() => openSessionModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Exam Session
-        </Button>
-      }>
-        <DataGrid columns={sessionColumns} data={examSessions} />
+      {institutionId === null && (
+        <p
+          role="alert"
+          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
+        >
+          The canonical database holds no institution row, so a session cannot be saved yet.
+        </p>
+      )}
+
+      <Card
+        title={t('examSessions.title', 'Exam Sessions Management')}
+        info="A session is an assessment: marks enter against it once its status is Open or Closed. Its date window and the papers it covers are set on the Scheduling tab."
+        bodyClassName="p-0"
+        actions={
+          canEdit ? (
+            <Button onClick={startNew} leftIcon={<PlusIcon className="w-5 h-5" />}>
+              Add exam session
+            </Button>
+          ) : undefined
+        }
+      >
+        <div className="border-t border-surface-border">
+          <DataGrid
+            columns={columns}
+            data={[...assessments]}
+            sortable
+            filterable
+            pagination
+            emptyState="No exam sessions yet. Add the first one; marks entry offers it once it is open."
+          />
+        </div>
       </Card>
 
-      {/* Session Modal */}
-      <DialogForm isOpen={isSessionModalOpen} onClose={closeSessionModal} title={editingSession ? 'Edit Exam Session' : 'Add New Exam Session'} size="lg">
-        <FormSection title="Session Information">
-          <FormField label="Exam Session Name" required>
-            <Input 
-              name="name" 
-              value={sessionFormData.name || ''} 
-              onChange={handleSessionInputChange} 
-              required 
-            />
-          </FormField>
-          <FormField label="School Period" required>
-            <Select 
-              name="school_period_id" 
-              value={sessionFormData.school_period_id ?? ''}
-              onChange={handleSessionInputChange}
-              required
-            >
-              <option value="">Select School Period</option>
-              {schoolPeriods.map(period => (
-                <option key={period.id} value={idOf(period.id)}>{periodLabel(period)}</option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label="Status" required>
-            <Select 
-              name="status" 
-              value={sessionFormData.status || ''} 
-              onChange={handleSessionInputChange}
-              required
-            >
-              {Object.values(ExamSessionStatus).map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </Select>
-          </FormField>
-        </FormSection>
-        <FormActions>
-          <Button variant="secondary" onClick={closeSessionModal}>Cancel</Button>
-          <Button onClick={handleSessionSubmit} loading={isSaving}>
-            {editingSession ? 'Save Changes' : 'Add Session'}
-          </Button>
-        </FormActions>
-      </DialogForm>
-
-      {/* Paper Settings Modal */}
-      <DialogForm 
-        isOpen={isPaperSettingModalOpen} 
-        onClose={closePaperSettingModal} 
-        title={`Manage Paper Settings for: ${activeSessionForPapers?.name || ''}`} 
-        size="xl"
-      >
-        {activeSessionForPapers && (
+      {draft && (
+        <Card title={editing ? `Edit ${editing.name}` : 'New exam session'}>
           <div className="space-y-4">
-            <Card title="Add/Edit Paper Setting">
-              <FormSection title="Paper Configuration">
-                <FormField label="Subject Paper" required>
-                  <Select name="subject_paper_id" value={paperSettingFormData.subject_paper_id ?? ''} onChange={handlePaperSettingInputChange} required>
-                      <option value="">Select Subject Paper</option>
-                      {subjectPapers.map(sp => <option key={sp.id} value={sp.id}>{sp.subject_name} - {sp.name}</option>)}
-                  </Select>
-                </FormField>
-                <FormField label="Marks Out Of" required>
-                  <Input name="marks_out_of" type="number" value={paperSettingFormData.marks_out_of || ''} onChange={handlePaperSettingInputChange} required />
-                </FormField>
-                <FormField label="Weight (%)" required>
-                  <Input name="weight_percentage" type="number" value={paperSettingFormData.weight_percentage || ''} onChange={handlePaperSettingInputChange} required />
-                </FormField>
-              </FormSection>
-              <FormActions>
-                <Button onClick={handlePaperSettingSubmit} size="sm">
-                  {editingPaperSetting ? 'Update Paper' : 'Add Paper'}
-                </Button>
-              </FormActions>
-            </Card>
-            
-            <h4 className="text-md font-semibold text-surface-foreground mt-6">Configured Papers for this Session</h4>
-            <DataGrid 
-              columns={paperSettingColumns} 
-              data={activeSessionForPapers.paper_settings || []} 
-            />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Input
+                label="Name"
+                name="name"
+                value={draft.name}
+                onChange={(event) =>
+                  setDraft((current) => (current ? { ...current, name: event.target.value } : current))
+                }
+                placeholder="e.g. End of term examination"
+              />
+              <EntityPicker
+                label="Academic period"
+                value={draft.academicPeriodId}
+                onChange={(next) =>
+                  setDraft((current) =>
+                    current ? { ...current, academicPeriodId: next } : current
+                  )
+                }
+                lookup={periodLookup}
+                placeholder="Select an academic period"
+                allowClear
+              />
+              <label className="block text-sm font-medium text-surface-foreground">
+                Kind
+                <select
+                  className="mt-1.5 w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm"
+                  value={draft.kind}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, kind: event.target.value as AssessmentKind }
+                        : current
+                    )
+                  }
+                >
+                  {ASSESSMENT_KINDS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {kind.replace(/_/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm font-medium text-surface-foreground">
+                Status
+                <select
+                  className="mt-1.5 w-full rounded-md border border-surface-border bg-surface px-3 py-2 text-sm"
+                  value={draft.status}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, status: event.target.value as AssessmentStatus }
+                        : current
+                    )
+                  }
+                >
+                  {ASSESSMENT_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {status.replace(/_/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <fieldset className="rounded-md border border-surface-border p-3">
+                <legend className="px-1 text-sm font-semibold text-surface-foreground">Levels</legend>
+                {levels.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg">No levels exist yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {levels.map((level) => (
+                      <Checkbox
+                        key={level.id}
+                        checked={draft.levelIds.includes(level.id)}
+                        onChange={() =>
+                          setDraft((current) =>
+                            current
+                              ? { ...current, levelIds: toggled(current.levelIds, level.id) }
+                              : current
+                          )
+                        }
+                      >
+                        {level.name}
+                      </Checkbox>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+
+              <fieldset className="rounded-md border border-surface-border p-3">
+                <legend className="px-1 text-sm font-semibold text-surface-foreground">
+                  Class groups
+                </legend>
+                {classGroups.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg">No class groups exist yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {classGroups.map((group) => (
+                      <Checkbox
+                        key={group.id}
+                        checked={draft.classGroupIds.includes(group.id)}
+                        onChange={() =>
+                          setDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  classGroupIds: toggled(current.classGroupIds, group.id),
+                                }
+                              : current
+                          )
+                        }
+                      >
+                        {classGroupLabel({ gradeLevel: levelName(group.level_id), name: group.name })}
+                      </Checkbox>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+
+              <fieldset className="rounded-md border border-surface-border p-3">
+                <legend className="px-1 text-sm font-semibold text-surface-foreground">
+                  Learning areas
+                </legend>
+                {learningAreas.length === 0 ? (
+                  <p className="text-sm text-surface-muted-fg">No learning areas exist yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {learningAreas.map((area) => (
+                      <Checkbox
+                        key={area.id}
+                        checked={draft.learningAreaIds.includes(area.id)}
+                        onChange={() =>
+                          setDraft((current) =>
+                            current
+                              ? {
+                                  ...current,
+                                  learningAreaIds: toggled(current.learningAreaIds, area.id),
+                                }
+                              : current
+                          )
+                        }
+                      >
+                        {area.name}
+                      </Checkbox>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+            </div>
+
+            <p className="text-xs text-surface-muted-fg">
+              Leaving levels and class groups empty applies the session to the whole school. Marks
+              entry offers it for each learning area chosen here.
+            </p>
+
+            {formError && (
+              <p
+                role="alert"
+                className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800"
+              >
+                {formError}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={closeForm}>
+                Cancel
+              </Button>
+              <Button onClick={() => void submit()} loading={saving}>
+                {editing ? 'Save session' : 'Create session'}
+              </Button>
+            </div>
           </div>
-        )}
-        <FormActions>
-          <Button variant="secondary" onClick={closePaperSettingModal}>Done</Button>
-        </FormActions>
-      </DialogForm>
+        </Card>
+      )}
     </div>
   );
 };
 
-const ExamSessionsPage: React.FC = () => (
-  <div className="space-y-3">
-    <ExamSessionsPageContent />
-  </div>
+export const ExamSessionsPageContent: React.FC = () => (
+  <CanonicalRepositoryProvider>
+    <ExamSessionList />
+  </CanonicalRepositoryProvider>
 );
+
+const ExamSessionsPage: React.FC = () => <ExamSessionsPageContent />;
 
 export default ExamSessionsPage;
