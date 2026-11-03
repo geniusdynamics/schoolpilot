@@ -32,6 +32,7 @@ import {
   createSqliteLedgerStore,
   ensureLedgerSchema,
   type LedgerAccount,
+  type LedgerAccountMapping,
 } from '@/domain/finance/ledger';
 import type { Money } from '@/domain/schema/common';
 
@@ -91,9 +92,15 @@ function today(): string {
 }
 
 /** Opens a ledger over an already-open adapter, applying its DDL once. */
-async function openLedgerOver(adapter: SqliteAdapter): Promise<LedgerService> {
+async function openLedgerOver(
+  adapter: SqliteAdapter,
+  mapping: LedgerAccountMapping | null
+): Promise<LedgerService> {
   await ensureLedgerSchema(adapter);
-  return new LedgerService({ store: createSqliteLedgerStore(adapter) });
+  return new LedgerService({
+    store: createSqliteLedgerStore(adapter),
+    ...(mapping === null ? {} : { mapping }),
+  });
 }
 
 /**
@@ -102,7 +109,8 @@ async function openLedgerOver(adapter: SqliteAdapter): Promise<LedgerService> {
  */
 function useExpenseLedger(
   ledger: LedgerService | null | undefined,
-  adapter: SqliteAdapter | null | undefined
+  adapter: SqliteAdapter | null | undefined,
+  mapping: LedgerAccountMapping | null
 ): {
   readonly ledger: LedgerService | null;
   readonly status: 'unavailable' | 'loading' | 'ready' | 'error';
@@ -124,7 +132,7 @@ function useExpenseLedger(
       return;
     }
     let cancelled = false;
-    void openLedgerOver(storage)
+    void openLedgerOver(storage, mapping)
       .then((service) => {
         if (!cancelled) setOpened(service);
       })
@@ -134,7 +142,7 @@ function useExpenseLedger(
     return () => {
       cancelled = true;
     };
-  }, [ledger, storage]);
+  }, [ledger, storage, mapping]);
 
   if (ledger) return { ledger, status: 'ready', error: null };
   if (failure) return { ledger: null, status: 'error', error: failure };
@@ -156,7 +164,8 @@ export const ExpensesContent: React.FC<ExpensesContentProps> = ({ ledger: givenL
   const data = useCanonicalExpenses();
   const { ledger, status: ledgerStatus, error: ledgerError } = useExpenseLedger(
     givenLedger,
-    adapter
+    adapter,
+    data.mapping
   );
 
   const [isOpen, setIsOpen] = useState(false);
@@ -448,7 +457,7 @@ export const ExpensesContent: React.FC<ExpensesContentProps> = ({ ledger: givenL
           <p>
             {t(
               'expenses.noAccounts',
-              'The ledger’s chart of accounts holds no expense account, so an expense cannot be recorded. This build has no screen that adds an account to the ledger’s chart; a chart with expense accounts has to be configured before this page can post.'
+              'The ledger’s chart of accounts holds no expense account, so an expense cannot be recorded. Add an expense account in Finance → Accounting Configuration → Chart of Accounts, then return to this page.'
             )}
           </p>
         </div>
