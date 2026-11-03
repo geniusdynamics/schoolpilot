@@ -273,7 +273,7 @@ describe.each(driverCases)('SQLite adapter contract ($name)', ({ create }) => {
     }
   });
 
-  it('applies the full 72-entity DDL to an empty database', async () => {
+  it('applies the full 74-entity DDL to an empty database', async () => {
     const adapter = await create();
     try {
       await applyCanonicalSchema(adapter);
@@ -281,7 +281,7 @@ describe.each(driverCases)('SQLite adapter contract ($name)', ({ create }) => {
       const tables = await adapter.all<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
       );
-      expect(ENTITY_NAMES).toHaveLength(72);
+      expect(ENTITY_NAMES).toHaveLength(74);
       expect(tables).toHaveLength(ENTITY_NAMES.length);
 
       const uniqueIndexes = await adapter.all<{ name: string; sql: string | null }>(

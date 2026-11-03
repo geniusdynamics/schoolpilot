@@ -706,6 +706,84 @@ export const ledgerAccountEntity = defineEntity({
 });
 
 /**
+ * A school's bank account, as ERPNext models it: the bank's own details around a ledger account.
+ *
+ * The row is not itself a GL account. `ledger_account_id` names the account of the chart the money
+ * lands in, which must be an asset the school keeps as a cash book or a bank book; several bank
+ * accounts may share one GL account, and `is_default` says which one the school nominates.
+ */
+export const bankAccountSchema = z.strictObject({
+  ...entityIdShape,
+  ...tenancyShape,
+  name: shortText(200),
+  bank_name: shortText(200),
+  account_number: shortText(64),
+  branch: shortText(200).optional(),
+  ledger_account_id: uuid(),
+  is_default: z.boolean(),
+  is_active: z.boolean(),
+  ...auditShape,
+});
+
+export type BankAccount = z.infer<typeof bankAccountSchema>;
+
+export const bankAccountEntity = defineEntity({
+  name: 'bank_account',
+  schema: bankAccountSchema,
+  storage: {
+    table: 'bank_account',
+    primaryKey: 'id',
+    indexes: ['institution_id', 'ledger_account_id', 'is_active'],
+    unique: [
+      // The school's own label is how a cashier picks the account; two banks called "Main" are a
+      // mistake, not a second account.
+      ['institution_id', 'name'],
+      // At most one default per institution.
+      { columns: ['institution_id'], where: 'is_default = 1' },
+    ],
+    refs: { institution_id: 'institution', ledger_account_id: 'ledger_account' },
+    encrypted: [],
+  },
+  label: (row) => `${row.name} · ${row.bank_name}`,
+});
+
+/**
+ * The account a payment channel posts to, as ERPNext's payment mode names its bank account.
+ *
+ * One row per channel: a school that nominates its second bank account for `bank_deposit` changes
+ * where every new bank deposit lands without touching the chart. A channel with no row falls back
+ * to the default control account of the chart, so a school that never configures this posts
+ * exactly where it posted before.
+ */
+export const channelAccountSchema = z.strictObject({
+  ...entityIdShape,
+  ...tenancyShape,
+  channel: z.enum(EXPENSE_CHANNELS),
+  ledger_account_id: uuid(),
+  ...auditShape,
+});
+
+export type ChannelAccount = z.infer<typeof channelAccountSchema>;
+
+export const channelAccountEntity = defineEntity({
+  name: 'channel_account',
+  schema: channelAccountSchema,
+  storage: {
+    table: 'channel_account',
+    primaryKey: 'id',
+    indexes: ['institution_id', 'ledger_account_id'],
+    unique: [
+      // One nomination per channel. The index covers live rows only, so clearing a nomination and
+      // making it again later does not collide with the row that was removed.
+      { columns: ['institution_id', 'channel'], where: 'deleted_at IS NULL' },
+    ],
+    refs: { institution_id: 'institution', ledger_account_id: 'ledger_account' },
+    encrypted: [],
+  },
+  label: (row) => row.channel,
+});
+
+/**
  * A recorded expense (spec 05 §8: the expenditure side of the books).
  *
  * The row is the document; the money moves in the ledger through `journal_entry_id`. The expense

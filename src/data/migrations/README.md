@@ -215,6 +215,9 @@ would miss.
 | 106 | payment providers | `provider_suspense`, unique by transaction, with the open-items index. |
 | 107 | collections | the reminder schedule, opt-outs, promises to pay, pay links and attempts, with their indexes. |
 | 108 | expenses | the recorded expense, its voucher, its posting and its reversal, with the indexes the list and the filters read. |
+| 109 | ledger | `ledger_account`: the chart of accounts the postings resolve against, unique by institution and code. |
+| 111 | ledger | `bank_account`: the school's bank details around a cash or bank ledger account, one default per institution. Version 110 belongs to another change in flight. |
+| 112 | ledger | `channel_account`: the ledger account each payment channel posts to, one per channel. |
 
 Adding a module is adding its migration to `SCHEMA_MIGRATIONS`: the startup path, the rollback and
 the version surface all read that list. **The suite holds that rule:** it finds every exported
