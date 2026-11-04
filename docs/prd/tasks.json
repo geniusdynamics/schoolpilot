@@ -5065,7 +5065,7 @@
       "spec": "audit/2026-11-modularity/README.md#8-method",
       "deps_install": false,
       "status": "done",
-      "commit": null,
+      "commit": "af68557",
       "notes": "Promoted scripts to scripts/modularity/ with a fixture test (node --test); fixed graph.mjs to resolve TypeScript from the script's own package so fixture trees work; migrated pnpm.onlyBuiltDependencies to pnpm-workspace.yaml (pnpm 11 allowBuilds; puppeteer stays false — CI sets PUPPETEER_SKIP_DOWNLOAD) and set verify-deps-before-run: false so pnpm exec cannot trigger an unattended install; CI job 'Modularity report (report-only)' prints M1-M3, startup paths and initial JS to the job summary.",
       "completed_at": "2026-11-04"
     },
