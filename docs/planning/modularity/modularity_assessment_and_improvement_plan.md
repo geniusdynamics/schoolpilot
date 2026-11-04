@@ -1,5 +1,9 @@
 # SchoolPilot3 Modularity Assessment & Improvement Plan
 
+> **Superseded (2026-11-04)** by [DR-06](../../prd/workflow-log/decisions/DR-06.md). DR-06 keeps module ownership of
+> types, schemas and migrations, and replaces the `AppDataContext` and `ServiceRegistry` mechanisms; see
+> [this folder's README](README.md).
+
 **Date:** April 8, 2026  
 **Status:** Analysis Complete  
 **Priority:** High

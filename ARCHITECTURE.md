@@ -73,6 +73,10 @@ was retired in Phase 1d (see git history).
 
 - **Modules** (`src/modules/<name>`) are first-party feature areas compiled
   into the app. Each has `data/`, `pages/`, optional `components/` and i18n.
+  Target ([DR-06](docs/prd/workflow-log/decisions/DR-06.md), phase P7): a module owns its bounded context.
+  - It holds its screens, domain code, entity schemas and migrations, over the shared kernel in `src/domain`.
+  - Its one manifest is `module.json`; other modules reach it only through `modules/<name>/public.ts`.
+  - The composition root (`src/core/moduleRegistration.ts`) is the only shared code that names modules.
 - **Plugins** (`src/plugins/builtin/*`) extend the backend/UI surface at
   runtime via manifests. Three are always registered (whitelabel,
   grading-engine, fee-calculator); the rest are dormant behind
@@ -88,7 +92,8 @@ Error boundaries are mounted inside Layout/tabbedWorkspace, not globally:
 
 1. The typecheck ratchet never grows: `pnpm check:ratchet`.
 2. No `window.confirm` / `alert` / `prompt`.
-3. `AppDataContext`, routing, module registry: additive changes only.
+3. `AppDataContext`, routing, module registry: additive changes only, except P7 tasks
+   ([DR-06](docs/prd/workflow-log/decisions/DR-06.md)). Those may change them, under P7's tests and the boundary ratchets.
 4. Collection ids are strings; comparisons use `String(x) === String(y)`.
 5. Money renders via `formatKES`, dates via `formatDate`.
 
@@ -102,3 +107,4 @@ Error boundaries are mounted inside Layout/tabbedWorkspace, not globally:
 | Typecheck ratchet | `.type-ratchet`, `scripts/check-type-ratchet.cjs` |
 | Provider contracts | `src/services/database/interfaces.ts` |
 | Feature flags | `src/stores/featureFlagStore.ts` |
+| Module boundaries (audit and plan) | `docs/audit/2026-11-modularity/README.md` |

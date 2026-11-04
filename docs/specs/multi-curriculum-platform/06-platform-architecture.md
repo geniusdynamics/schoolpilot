@@ -54,6 +54,10 @@ interface Repository<E extends Entity> {
 
 ### 2.5 Schema and migrations
 - Entity schemas live in `src/domain/schema/*.ts`; storage DDL (SQLite/Postgres) is generated.
+  > **Amended by [DR-06](../../prd/workflow-log/decisions/DR-06.md) (2026-11-04).** Kernel entity schemas (shared
+  > entities) stay in `src/domain/schema`. A module's own entity schemas and migrations live in its folder and are
+  > contributed to one composed registry, which keeps a closed `EntityName` (P7-F01). Each entity still has exactly one
+  > definition.
 - Migrations are numbered, idempotent, reversible where possible, and run at startup with a progress screen and automatic pre-migration backup.
 - A data-repair framework runs integrity checks (orphans, invalid FKs, impossible dates) and reports/fixes with consent — needed to clean data created by today's bugs.
 
