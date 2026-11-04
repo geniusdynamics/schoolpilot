@@ -103,7 +103,6 @@ const PENDING_CANONICAL_MIGRATION: Record<string, string> = {
   'reports/pages/ExamResultsHorizontalPage.tsx': 'learner, class_group, level, assessment, mark',
   'reports/pages/FeeCollectionSummaryPage.tsx': 'learner, class_group, academic_period, invoice, payment',
   'reports/pages/StudentFinancialSummaryPage.tsx': 'learner, class_group, academic_period, invoice, payment',
-  'reports/pages/StudentVoteheadStatementPage.tsx': 'learner, academic_period, invoice, payment',
   'reports/library/OverdueReport.tsx': 'learner, staff',
 };
 
