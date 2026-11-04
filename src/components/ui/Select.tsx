@@ -7,15 +7,17 @@ import React, {
   useState, 
   useRef, 
   useEffect, 
-  useCallback, 
+  useCallback,
   useMemo,
   KeyboardEvent,
   MouseEvent,
   FocusEvent,
   ReactNode 
 } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDownIcon, XMarkIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { createAriaDescribedBy, getFormFieldIds, getAriaInvalid, announceToScreenReader } from '@/utils/accessibility';
+import { useAnchoredPopup } from './popper';
 
 export interface SelectOption {
   value: string;
@@ -345,7 +347,7 @@ const Select: React.FC<SelectProps> = ({
         setIsOpen(false);
         break;
     }
-  }, [disabled, isOpen, focusedIndex, filteredOptions, handleOptionSelect]);
+  }, [disabled, isOpen, loading, focusedIndex, filteredOptions, handleOptionSelect]);
 
   // Handle search input
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -377,8 +379,11 @@ const Select: React.FC<SelectProps> = ({
     
     // Use setTimeout to allow click events to be processed first
     setTimeout(() => {
-      // Only close if focus is moving outside the component and dropdown is still open
-      if (!containerRef.current?.contains(document.activeElement as Node)) {
+      // Only close if focus is moving outside the component and dropdown is still open. The
+      // dropdown lives in a portal on document.body, so it counts as inside.
+      const insideTrigger = containerRef.current?.contains(document.activeElement as Node);
+      const insidePopup = dropdownRef.current?.contains(document.activeElement as Node);
+      if (!insideTrigger && !insidePopup) {
         setIsOpen(false);
         setSearchQuery('');
         setFocusedIndex(-1);
@@ -402,7 +407,11 @@ const Select: React.FC<SelectProps> = ({
         return;
       }
       
-      if (containerRef.current && !containerRef.current.contains(target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target as Node) &&
+        !dropdownRef.current?.contains(target as Node)
+      ) {
         setIsOpen(false);
         setSearchQuery('');
         setFocusedIndex(-1);
@@ -488,13 +497,15 @@ const Select: React.FC<SelectProps> = ({
     className,
   ].filter(Boolean).join(' ');
 
-  // Build dropdown classes
+  // Build dropdown classes. The dropdown itself is portalled to document.body and pinned to the
+  // trigger by useAnchoredPopup, so no overflow-hidden ancestor (a Card, a grid cell) can clip it.
   const dropdownClasses = [
-    'absolute z-50 w-full mt-1.5 bg-surface-popover border border-surface-border rounded-xl shadow-lg',
+    'bg-surface-popover border border-surface-border rounded-xl shadow-lg',
     'max-h-72 overflow-auto',
     'animate-slide-down',
     currentSizeClasses.dropdown,
   ].join(' ');
+  const dropdownAnchor = useAnchoredPopup(isOpen, triggerRef, dropdownRef);
 
   // Render selected value display
   const renderSelectedValue = () => {
@@ -724,42 +735,47 @@ const Select: React.FC<SelectProps> = ({
           </div>
         </div>
 
-        {isOpen && (
-          <div
-            ref={dropdownRef}
-            className={dropdownClasses}
-          >
-            {searchable && (
-              <div className="sticky top-0 z-10 bg-surface-popover border-b border-surface-border p-2">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-surface-muted-fg pointer-events-none" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder={searchPlaceholder}
-                    className="w-full h-8 pl-9 pr-3 bg-surface-muted dark:bg-slate-800/60 border border-transparent rounded-md text-sm text-surface-foreground placeholder:text-surface-muted-fg focus:outline-none focus:bg-surface-card focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/15"
-                  />
-                </div>
-              </div>
-            )}
+        {isOpen && typeof document !== 'undefined'
+          ? createPortal(
+              <div
+                ref={dropdownRef}
+                className={dropdownClasses}
+                style={dropdownAnchor.style}
+                data-placement={dropdownAnchor.placement}
+              >
+                {searchable && (
+                  <div className="sticky top-0 z-10 bg-surface-popover border-b border-surface-border p-2">
+                    <div className="relative">
+                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-surface-muted-fg pointer-events-none" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        placeholder={searchPlaceholder}
+                        className="w-full h-8 pl-9 pr-3 bg-surface-muted dark:bg-slate-800/60 border border-transparent rounded-md text-sm text-surface-foreground placeholder:text-surface-muted-fg focus:outline-none focus:bg-surface-card focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/15"
+                      />
+                    </div>
+                  </div>
+                )}
 
-            <div
-              role="listbox"
-              aria-multiselectable={multiple}
-              className="py-1"
-            >
-              {filteredOptions.length > 0 ? (
-                filteredOptions.map((option, index) => renderOption(option, index))
-              ) : (
-                <div className={`text-surface-muted-fg text-center ${currentSizeClasses.option}`}>
-                  {searchQuery ? noOptionsMessage : 'No options available'}
+                <div
+                  role="listbox"
+                  aria-multiselectable={multiple}
+                  className="py-1"
+                >
+                  {filteredOptions.length > 0 ? (
+                    filteredOptions.map((option, index) => renderOption(option, index))
+                  ) : (
+                    <div className={`text-surface-muted-fg text-center ${currentSizeClasses.option}`}>
+                      {searchQuery ? noOptionsMessage : 'No options available'}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-        )}
+              </div>,
+              document.body
+            )
+          : null}
       </div>
 
       {helperText && !error && (
