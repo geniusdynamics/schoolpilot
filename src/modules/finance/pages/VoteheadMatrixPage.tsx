@@ -1,8 +1,10 @@
 // ABOUTME: Class vote-head matrix report: one row per learner, one outstanding column per vote head,
-// ABOUTME: and a total. It rebuilds the old student vote-head balances grid on canonical invoice lines.
+// ABOUTME: and a total. It rebuilds the old student vote-head balances grid on canonical invoice lines,
+// ABOUTME: scoped by the shared Year, Class and Stream ids.
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
+import { AcademicScopeFilterBar, useAcademicScope } from '@/academic-scope';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { DataGrid, type DataGridColumn } from '@/components/ui/data';
@@ -23,18 +25,8 @@ const csvCell = (value: string | number): string => {
 type MatrixGridRow = Record<string, unknown>;
 
 export const VoteheadMatrixPageContent: React.FC = () => {
-  const finance = useCanonicalFinance();
-  const currentPeriod = finance.periods.find((period) => period.status === 'current') ?? finance.periods[0];
-  const [periodChoice, setPeriodChoice] = useState<string | null>(null);
-  const [className, setClassName] = useState('');
-
-  const periodFilter =
-    periodChoice === null ? (currentPeriod?.id ?? '') : periodChoice === 'all' ? '' : periodChoice;
-  const classOptions = useMemo(
-    () =>
-      [...new Set(finance.learnerRows.map((learner) => learner.className).filter(Boolean))].sort(),
-    [finance.learnerRows]
-  );
+  const scope = useAcademicScope({ period: 'required' });
+  const finance = useCanonicalFinance({ academicYearId: scope.scope.effective.yearId });
 
   const report = useMemo(
     () =>
@@ -42,9 +34,20 @@ export const VoteheadMatrixPageContent: React.FC = () => {
         lines: finance.invoiceLineRows,
         learners: finance.learnerRows,
         feeItems: finance.feeItems,
-        filters: { periodId: periodFilter, className },
+        filters: {
+          periodId: scope.scope.effective.periodId,
+          levelId: scope.scope.effective.levelId,
+          classGroupId: scope.scope.effective.classGroupId,
+        },
       }),
-    [finance.invoiceLineRows, finance.learnerRows, finance.feeItems, periodFilter, className]
+    [
+      finance.invoiceLineRows,
+      finance.learnerRows,
+      finance.feeItems,
+      scope.scope.effective.periodId,
+      scope.scope.effective.levelId,
+      scope.scope.effective.classGroupId,
+    ]
   );
 
   const gridRows = useMemo<MatrixGridRow[]>(
@@ -66,7 +69,8 @@ export const VoteheadMatrixPageContent: React.FC = () => {
         filterable: true,
         render: (value) => <span className="font-medium">{String(value)}</span>,
       },
-      { key: 'className', header: 'Class', sortable: true, filterable: true },
+      { key: 'classLabel', header: 'Class', sortable: true, filterable: true },
+      { key: 'streamName', header: 'Stream', sortable: true, filterable: true },
     ];
     const voteHeads: DataGridColumn<MatrixGridRow>[] = report.columns.map((column) => ({
       key: `v:${column.id}`,
@@ -101,6 +105,7 @@ export const VoteheadMatrixPageContent: React.FC = () => {
       'Adm no',
       'Learner',
       'Class',
+      'Stream',
       ...report.columns.map((column) => column.label),
       'Total balance',
     ];
@@ -108,7 +113,8 @@ export const VoteheadMatrixPageContent: React.FC = () => {
       [
         row.admissionNumber,
         row.name,
-        row.className,
+        row.classLabel,
+        row.streamName,
         ...report.columns.map((column) => ((row.values[`v:${column.id}`] ?? 0) / 100).toFixed(2)),
         (row.totalBalanceMinor / 100).toFixed(2),
       ]
@@ -117,6 +123,7 @@ export const VoteheadMatrixPageContent: React.FC = () => {
     );
     const totals = [
       'Total',
+      '',
       '',
       '',
       ...report.columns.map(() => ''),
@@ -173,38 +180,7 @@ export const VoteheadMatrixPageContent: React.FC = () => {
           </div>
         }
       >
-        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <label className="text-sm">
-            <span className="mb-1 block font-medium text-surface-foreground">Period</span>
-            <select
-              value={periodChoice ?? currentPeriod?.id ?? ''}
-              onChange={(event) => setPeriodChoice(event.target.value)}
-              className="w-full rounded-md border border-surface-border px-3 py-2"
-            >
-              <option value="all">All periods</option>
-              {finance.periods.map((period) => (
-                <option key={period.id} value={period.id}>
-                  {period.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block font-medium text-surface-foreground">Class</span>
-            <select
-              value={className}
-              onChange={(event) => setClassName(event.target.value)}
-              className="w-full rounded-md border border-surface-border px-3 py-2"
-            >
-              <option value="">All classes</option>
-              {classOptions.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <AcademicScopeFilterBar scope={scope} period="required" className="mb-4" />
 
         <DataGrid
           columns={columns}
@@ -213,7 +189,7 @@ export const VoteheadMatrixPageContent: React.FC = () => {
           filterable
           emptyState={{
             title: 'No billed lines match the filters',
-            description: 'Choose another period or class, or run the billing run for this period.',
+            description: 'Choose another year, class or period, or run the billing run for this period.',
           }}
         />
       </Card>

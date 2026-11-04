@@ -7,6 +7,7 @@ import { formatMinorUnits } from '@/components/ui/forms/MoneyField';
 import type { EntityFormLookup, EntityLookupRow } from '@/components/ui/forms/fieldTypes';
 import { useEntityQuery, useLookup, type LookupResult } from '@/data/query';
 import type { QueryRepository } from '@/data/query';
+import { classGroupLabel } from '@/utils/academicLabels';
 import type {
   CreateInput,
   RepositoryRow,
@@ -259,16 +260,29 @@ export interface FinanceInvoiceLineRow {
   readonly row: RepositoryRow<'invoice_line'>;
 }
 
-/** A learner with the admission number and current class the reports show. */
+/** A learner with the admission number and the chosen year's class the reports show. */
 export interface FinanceLearnerRow {
   readonly id: string;
   readonly name: string;
   readonly admissionNumber: string;
   readonly status: string;
+  /** The full label, grade and stream, e.g. "Grade 7 · East". */
   readonly className: string;
+  /** The grade (level) name, e.g. "Grade 7". */
+  readonly classLabel: string;
+  /** The year-scoped class group's own name, e.g. "East". */
+  readonly streamName: string;
+  /** The chosen year's class-group id; empty when the learner has no placement in that year. */
+  readonly classGroupId: string;
   readonly levelId: string;
   readonly levelName: string;
   readonly row: RepositoryRow<'learner'>;
+}
+
+/** What a caller may narrow the canonical finance read to. */
+export interface CanonicalFinanceOptions {
+  /** The academic year whose placements label the learners; empty means the current year. */
+  readonly academicYearId?: string | null;
 }
 
 /** The canonical entities and resolved rows the finance pages read. */
@@ -333,13 +347,76 @@ function labelOfId<E extends EntityName>(
 }
 
 /**
+ * Resolves every learner's placement in one academic year and labels it by grade and stream.
+ *
+ * The enrolment is chosen by year id, never by "the latest start date across all years": a learner
+ * who moved from Grade 7 East to Grade 8 West must still read as Grade 7 East when that year is
+ * asked for. Identity is the class-group id, so two grades' "East" are two different classes even
+ * though they share a name.
+ */
+export function buildFinanceLearnerRows(input: {
+  readonly learners: readonly RepositoryRow<'learner'>[];
+  readonly enrolments: readonly RepositoryRow<'enrolment'>[];
+  readonly classGroups: readonly RepositoryRow<'class_group'>[];
+  readonly levels: readonly RepositoryRow<'level'>[];
+  readonly years: readonly RepositoryRow<'academic_year'>[];
+  readonly academicYearId?: string | null;
+}): readonly FinanceLearnerRow[] {
+  const askedYearId = input.academicYearId ?? '';
+  // A chosen year is resolved by id. With no year asked for, the flagged current year keeps the
+  // behaviour every existing caller had. A year that cannot be found yields no placements rather
+  // than quietly showing another year's classes under the chosen year.
+  const year = askedYearId
+    ? (input.years.find((row) => row.id === askedYearId) ?? null)
+    : (input.years.find((row) => row.status === 'current') ?? input.years[0] ?? null);
+
+  const enrolmentByLearner = new Map<string, RepositoryRow<'enrolment'>>();
+  for (const enrolment of input.enrolments) {
+    if (!year || enrolment.academic_year_id !== year.id) continue;
+    if (enrolment.status !== 'active' && enrolment.status !== 'repeating') continue;
+    const current = enrolmentByLearner.get(enrolment.learner_id);
+    if (
+      !current ||
+      enrolment.start_date > current.start_date ||
+      (enrolment.start_date === current.start_date && enrolment.id > current.id)
+    ) {
+      enrolmentByLearner.set(enrolment.learner_id, enrolment);
+    }
+  }
+
+  const classGroupById = new Map(input.classGroups.map((group) => [group.id, group]));
+  const levelById = new Map(input.levels.map((level) => [level.id, level]));
+
+  return input.learners.map((row) => {
+    const enrolment = enrolmentByLearner.get(row.id);
+    const group = enrolment ? classGroupById.get(enrolment.class_group_id) : undefined;
+    const levelName = group ? (levelById.get(group.level_id)?.name ?? '') : '';
+    const streamName = group?.name ?? '';
+    return {
+      id: row.id,
+      name: `${row.preferred_name ?? row.given_name} ${row.family_name}`.trim(),
+      admissionNumber: row.admission_number,
+      status: row.status,
+      className: classGroupLabel({ gradeLevel: levelName, name: streamName }),
+      classLabel: levelName,
+      streamName,
+      classGroupId: group?.id ?? '',
+      levelId: group?.level_id ?? '',
+      levelName,
+      row,
+    };
+  });
+}
+
+/**
  * Reads the canonical finance entities and derives the rows the pages render.
  *
  * Amounts stay in minor units from the repository to the screen: nothing here divides
  * by 100, so a payment of 15 000.05 is the integer 1 500 005 from end to end.
  */
-export function useCanonicalFinance(): CanonicalFinance {
+export function useCanonicalFinance(options: CanonicalFinanceOptions = {}): CanonicalFinance {
   const repository = useCanonicalRepository();
+  const academicYearId = options.academicYearId ?? '';
 
   const learnersQuery = useEntityQuery(repository, 'learner', {}, EVERY_PAGE);
   const enrolmentsQuery = useEntityQuery(repository, 'enrolment', {}, EVERY_PAGE);
@@ -401,31 +478,18 @@ export function useCanonicalFinance(): CanonicalFinance {
     [installmentPlansQuery.data]
   );
 
-  const learnerRows = useMemo<readonly FinanceLearnerRow[]>(() => {
-    const currentYear = years.find((year) => year.status === 'current') ?? years[0];
-    const enrolmentByLearner = new Map<string, RepositoryRow<'enrolment'>>();
-    for (const enrolment of enrolments) {
-      if (currentYear && enrolment.academic_year_id !== currentYear.id) continue;
-      if (enrolment.status !== 'active' && enrolment.status !== 'repeating') continue;
-      enrolmentByLearner.set(enrolment.learner_id, enrolment);
-    }
-    const classGroupById = new Map<string, RepositoryRow<'class_group'>>();
-    for (const group of classGroups) classGroupById.set(group.id, group);
-    return learners.map((row) => {
-      const enrolment = enrolmentByLearner.get(row.id);
-      const group = enrolment ? classGroupById.get(enrolment.class_group_id) : undefined;
-      return {
-        id: row.id,
-        name: `${row.preferred_name ?? row.given_name} ${row.family_name}`.trim(),
-        admissionNumber: row.admission_number,
-        status: row.status,
-        className: group?.name ?? '',
-        levelId: group?.level_id ?? '',
-        levelName: group ? labelOfId(levelLookup, group.level_id) : '',
-        row,
-      };
-    });
-  }, [learners, enrolments, years, classGroups, levelLookup]);
+  const learnerRows = useMemo<readonly FinanceLearnerRow[]>(
+    () =>
+      buildFinanceLearnerRows({
+        learners,
+        enrolments,
+        classGroups,
+        levels,
+        years,
+        academicYearId,
+      }),
+    [learners, enrolments, classGroups, levels, years, academicYearId]
+  );
 
   const learnerName = (id: string | null | undefined) => labelOfId(learnerLookup, id);
   const periodName = (id: string | null | undefined) => labelOfId(periodLookup, id);

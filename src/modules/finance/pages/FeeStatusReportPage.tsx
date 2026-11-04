@@ -1,11 +1,13 @@
-// ABOUTME: Fee status report: billed, collected and outstanding per class and vote head, with the
-// ABOUTME: distinct learners behind each row. It reads posted canonical invoice lines and their
-// ABOUTME: payment allocations; the class and vote-head filters narrow the same figures.
+// ABOUTME: Fee status report: billed, collected and outstanding per class-group and vote head, with the
+// ABOUTME: distinct learners behind each row. It reads posted canonical invoice lines and their payment
+// ABOUTME: allocations; Year, Class, Stream and Period come from the shared scope bar, by id.
 
 import React, { useMemo, useState } from 'react';
 
+import { AcademicScopeFilterBar, useAcademicScope } from '@/academic-scope';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Select from '@/components/ui/Select';
 import { DataGrid, type DataGridColumn } from '@/components/ui/data';
 import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 import { printReport } from '@/components/reports/print';
@@ -22,21 +24,11 @@ const csvCell = (value: string | number): string => {
 };
 
 export const FeeStatusReportPageContent: React.FC = () => {
-  const finance = useCanonicalFinance();
-  const currentPeriod = finance.periods.find((period) => period.status === 'current') ?? finance.periods[0];
-  const [periodChoice, setPeriodChoice] = useState<string | null>(null);
-  const [className, setClassName] = useState('');
+  const scope = useAcademicScope({ period: 'required' });
+  const finance = useCanonicalFinance({ academicYearId: scope.scope.effective.yearId });
   const [feeItemId, setFeeItemId] = useState('');
   const [arrearsOnly, setArrearsOnly] = useState(false);
 
-  const periodFilter =
-    periodChoice === null ? (currentPeriod?.id ?? '') : periodChoice === 'all' ? '' : periodChoice;
-
-  const classOptions = useMemo(
-    () =>
-      [...new Set(finance.learnerRows.map((learner) => learner.className).filter(Boolean))].sort(),
-    [finance.learnerRows]
-  );
   const feeItemOptions = useMemo(
     () =>
       [...finance.feeItems]
@@ -51,13 +43,29 @@ export const FeeStatusReportPageContent: React.FC = () => {
         lines: finance.invoiceLineRows,
         learners: finance.learnerRows,
         feeItems: finance.feeItems,
-        filters: { periodId: periodFilter, className, feeItemId, arrearsOnly },
+        filters: {
+          periodId: scope.scope.effective.periodId,
+          levelId: scope.scope.effective.levelId,
+          classGroupId: scope.scope.effective.classGroupId,
+          feeItemId,
+          arrearsOnly,
+        },
       }),
-    [finance.invoiceLineRows, finance.learnerRows, finance.feeItems, periodFilter, className, feeItemId, arrearsOnly]
+    [
+      finance.invoiceLineRows,
+      finance.learnerRows,
+      finance.feeItems,
+      scope.scope.effective.periodId,
+      scope.scope.effective.levelId,
+      scope.scope.effective.classGroupId,
+      feeItemId,
+      arrearsOnly,
+    ]
   );
 
   const columns: DataGridColumn<FeeStatusRow>[] = [
-    { key: 'className', header: 'Class', sortable: true, filterable: true },
+    { key: 'classLabel', header: 'Class', sortable: true, filterable: true },
+    { key: 'streamName', header: 'Stream', sortable: true, filterable: true },
     {
       key: 'feeItem',
       header: 'Vote head',
@@ -113,10 +121,20 @@ export const FeeStatusReportPageContent: React.FC = () => {
   ];
 
   const exportCsv = () => {
-    const header = ['Class', 'Vote head', 'Learners', 'Billed', 'Collected', 'Outstanding', 'Collected %'];
+    const header = [
+      'Class',
+      'Stream',
+      'Vote head',
+      'Learners',
+      'Billed',
+      'Collected',
+      'Outstanding',
+      'Collected %',
+    ];
     const lines = report.rows.map((row) =>
       [
-        row.className,
+        row.classLabel,
+        row.streamName,
         row.feeItem,
         row.learners,
         (row.billedMinor / 100).toFixed(2),
@@ -129,6 +147,7 @@ export const FeeStatusReportPageContent: React.FC = () => {
     );
     const total = [
       'Total',
+      '',
       '',
       report.totals.learners,
       (report.totals.billedMinor / 100).toFixed(2),
@@ -168,7 +187,7 @@ export const FeeStatusReportPageContent: React.FC = () => {
 
       <Card
         title="Fee status by class and vote head"
-        info="Billed is every posted invoice line in the chosen period; collected is the share of those lines already settled by payment allocations. Outstanding is the rest, and a learner with two lines under one vote head is counted once."
+        info="Billed is every posted invoice line in the chosen year and period; collected is the share of those lines already settled by payment allocations. Outstanding is the rest, and a learner with two lines under one vote head is counted once."
         actions={
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={exportCsv} disabled={report.rows.length === 0}>
@@ -187,52 +206,17 @@ export const FeeStatusReportPageContent: React.FC = () => {
           </div>
         }
       >
-        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-4">
-          <label className="text-sm">
-            <span className="mb-1 block font-medium text-surface-foreground">Period</span>
-            <select
-              value={periodChoice ?? currentPeriod?.id ?? ''}
-              onChange={(event) => setPeriodChoice(event.target.value)}
-              className="w-full rounded-md border border-surface-border px-3 py-2"
-            >
-              <option value="all">All periods</option>
-              {finance.periods.map((period) => (
-                <option key={period.id} value={period.id}>
-                  {period.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block font-medium text-surface-foreground">Class</span>
-            <select
-              value={className}
-              onChange={(event) => setClassName(event.target.value)}
-              className="w-full rounded-md border border-surface-border px-3 py-2"
-            >
-              <option value="">All classes</option>
-              {classOptions.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block font-medium text-surface-foreground">Vote head</span>
-            <select
-              value={feeItemId}
-              onChange={(event) => setFeeItemId(event.target.value)}
-              className="w-full rounded-md border border-surface-border px-3 py-2"
-            >
-              <option value="">All vote heads</option>
-              {feeItemOptions.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
+        <AcademicScopeFilterBar scope={scope} period="required" className="mb-4">
+          <Select
+            label="Vote head"
+            aria-label="Vote head"
+            value={feeItemId}
+            onValueChange={(value) => setFeeItemId(Array.isArray(value) ? '' : value)}
+            options={[
+              { value: '', label: 'All vote heads' },
+              ...feeItemOptions.map((item) => ({ value: item.id, label: item.label })),
+            ]}
+          />
           <label className="flex items-end gap-2 pb-2 text-sm">
             <input
               type="checkbox"
@@ -242,7 +226,7 @@ export const FeeStatusReportPageContent: React.FC = () => {
             />
             <span className="font-medium text-surface-foreground">Only outstanding rows</span>
           </label>
-        </div>
+        </AcademicScopeFilterBar>
 
         <DataGrid
           columns={columns}
@@ -251,7 +235,7 @@ export const FeeStatusReportPageContent: React.FC = () => {
           filterable
           emptyState={{
             title: 'No billed lines match the filters',
-            description: 'Choose another period or class, or run the billing run for this period.',
+            description: 'Choose another year, class or period, or run the billing run for this period.',
           }}
         />
       </Card>

@@ -5,7 +5,10 @@ import type { FinanceInvoiceLineRow, FinanceLearnerRow } from '../data/canonical
 
 export interface VoteheadMatrixFilters {
   readonly periodId: string;
-  readonly className: string;
+  /** Only learners placed at this level (grade); empty means every grade. */
+  readonly levelId: string;
+  /** Only learners placed in this class group (stream); empty means every stream. */
+  readonly classGroupId: string;
 }
 
 export interface VoteheadMatrixColumn {
@@ -17,7 +20,13 @@ export interface VoteheadMatrixRow {
   readonly id: string;
   readonly admissionNumber: string;
   readonly name: string;
+  /** The full label, grade and stream, e.g. "Grade 7 · East". */
   readonly className: string;
+  /** The grade (level) name, e.g. "Grade 7". */
+  readonly classLabel: string;
+  /** The stream (class group) name, e.g. "East". */
+  readonly streamName: string;
+  readonly classGroupId: string;
   readonly totalBilledMinor: number;
   readonly totalPaidMinor: number;
   readonly totalBalanceMinor: number;
@@ -37,7 +46,8 @@ export interface VoteheadMatrixReport {
 
 export const EMPTY_VOTEHEAD_MATRIX_FILTERS: VoteheadMatrixFilters = {
   periodId: '',
-  className: '',
+  levelId: '',
+  classGroupId: '',
 };
 
 const UNASSIGNED = 'unassigned';
@@ -55,6 +65,9 @@ interface Bucket {
  * A vote head's column appears when at least one filtered line names it. The cell is the outstanding
  * balance (billed minus paid) for that learner and vote head; a zero means nothing is left, not that
  * nothing was billed. The row total is over the same cells.
+ *
+ * Learners are narrowed by level and class-group id, never by the display text: two grades' "East"
+ * are two different classes.
  */
 export function buildVoteheadMatrix(input: {
   readonly lines: readonly FinanceInvoiceLineRow[];
@@ -81,7 +94,8 @@ export function buildVoteheadMatrix(input: {
     if (!line.learnerId) continue;
     const learner = learnerById.get(line.learnerId);
     if (!learner) continue;
-    if (input.filters.className && learner.className !== input.filters.className) continue;
+    if (input.filters.levelId && learner.levelId !== input.filters.levelId) continue;
+    if (input.filters.classGroupId && learner.classGroupId !== input.filters.classGroupId) continue;
 
     const itemId = line.row.fee_item_id ?? UNASSIGNED;
     const item = feeItems.get(itemId);
@@ -122,6 +136,9 @@ export function buildVoteheadMatrix(input: {
         admissionNumber: entry.learner.admissionNumber,
         name: entry.learner.name,
         className: entry.learner.className,
+        classLabel: entry.learner.classLabel,
+        streamName: entry.learner.streamName,
+        classGroupId: entry.learner.classGroupId,
         totalBilledMinor: entry.billedMinor,
         totalPaidMinor: entry.paidMinor,
         totalBalanceMinor: balance,
@@ -130,7 +147,9 @@ export function buildVoteheadMatrix(input: {
     })
     .sort(
       (left, right) =>
-        left.className.localeCompare(right.className) || left.name.localeCompare(right.name)
+        left.classLabel.localeCompare(right.classLabel) ||
+        left.streamName.localeCompare(right.streamName) ||
+        left.name.localeCompare(right.name)
     );
 
   return {

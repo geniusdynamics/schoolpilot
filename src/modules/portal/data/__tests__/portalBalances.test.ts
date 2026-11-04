@@ -48,6 +48,7 @@ const summary = (studentId: string, balance: number): StudentFinancialSummary =>
   admissionNo: 'ADM',
   name: 'A learner',
   className: 'Form 1',
+  classLabel: 'Form 1',
   streamName: 'North',
   feeAmount: 650_000,
   feeExemption: 0,

@@ -47,6 +47,8 @@ import { FeeCollectionSummaryPageContent } from '../FeeCollectionSummaryPage';
 import { StudentFinancialSummaryPageContent } from '../StudentFinancialSummaryPage';
 import { StudentsPaidBookPageContent } from '../StudentsPaidBookPage';
 import { FeesDueReportPageContent } from '../FeesDueReportPage';
+import { FeeStatusReportPageContent } from '../FeeStatusReportPage';
+import { VoteheadMatrixPageContent } from '../VoteheadMatrixPage';
 import { VoteheadStatementPageContent } from '../VoteheadStatementPage';
 import { PreviousSessionFeesPageContent } from '../PreviousSessionFeesPage';
 import { FinanceDashboardPageContent } from '../FinanceDashboardPage';
@@ -417,6 +419,8 @@ describe('every migrated finance page renders from the repository', () => {
     ['financial summary', <StudentFinancialSummaryPageContent />, 'Jane Wanjiru'],
     ['students paid book', <StudentsPaidBookPageContent />, 'RCT/2027/000001'],
     ['fees due', <FeesDueReportPageContent />, 'Jane Wanjiru'],
+    ['fee status', <FeeStatusReportPageContent />, 'Fee status by class and vote head'],
+    ['votehead matrix', <VoteheadMatrixPageContent />, 'Vote-head matrix'],
     ['votehead statement', <VoteheadStatementPageContent />, 'Votehead statement'],
     ['previous session fees', <PreviousSessionFeesPageContent />, 'INV-000004'],
     ['dashboard', <FinanceDashboardPageContent />, 'Finance dashboard'],
@@ -434,6 +438,24 @@ describe('every migrated finance page renders from the repository', () => {
       },
       { timeout: 5000 }
     );
+  });
+});
+
+describe('the fee reports scope by year, class and stream ids', () => {
+  it('puts the shared scope bar above the fee status grid and splits class from stream', async () => {
+    renderPage(<FeeStatusReportPageContent />);
+    await screen.findByText('Fee status by class and vote head');
+    expect(screen.getByTestId('academic-scope-filter-bar')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Class' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Stream' })).toBeInTheDocument();
+  });
+
+  it('puts the shared scope bar above the vote-head matrix and splits class from stream', async () => {
+    renderPage(<VoteheadMatrixPageContent />);
+    await screen.findByText('Vote-head matrix');
+    expect(screen.getByTestId('academic-scope-filter-bar')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Class' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Stream' })).toBeInTheDocument();
   });
 });
 

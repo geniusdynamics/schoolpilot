@@ -5,6 +5,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { useEntityQuery } from '@/data/query';
+import { classGroupLabel } from '@/utils/academicLabels';
 
 import { useCanonicalRepository } from '../data/canonicalRepository';
 import { buildLearnerPositions, type LearnerPosition } from '../data/learnerPosition';
@@ -19,7 +20,11 @@ export interface StudentFinancialSummary {
   readonly studentId: string;
   readonly admissionNo: string;
   readonly name: string;
+  /** The full label, grade and stream, e.g. "Grade 7 · East". */
   readonly className: string | null;
+  /** The grade (level) name, e.g. "Grade 7". */
+  readonly classLabel: string | null;
+  /** The stream (class group) name, e.g. "East". */
   readonly streamName: string | null;
   /**
    * Everything billed on the learner's posted invoices.
@@ -52,11 +57,51 @@ export interface SummaryRowInput {
     readonly given_name: string;
     readonly family_name: string;
   };
-  readonly className: string | null;
+  /** The grade (level) name of the learner's placement, when the report knows one. */
+  readonly classLabel: string | null;
+  /** The class group's own name, e.g. "East". */
+  readonly streamName: string | null;
   readonly position: LearnerPosition;
   /** The fine part of what was billed, reported beside it and never added to the balance. */
   readonly penalties: number;
   readonly earliestDueDate: string | null;
+}
+
+/** The fields of one enrolment the placement resolver reads. */
+export interface SummaryEnrolmentRow {
+  readonly id: string;
+  readonly learner_id: string;
+  readonly academic_year_id: string;
+  readonly class_group_id: string;
+  readonly status: string;
+  readonly start_date: string;
+}
+
+/**
+ * The active placement of each learner, in one academic year when a year is asked for.
+ *
+ * With no year, the latest placement wins, which is the behaviour the portal has always had. A year
+ * id narrows the candidates first, so a learner's older class is still reported when that year is
+ * chosen instead of being overwritten by a later year's move.
+ */
+export function resolveSummaryEnrolments<T extends SummaryEnrolmentRow>(
+  enrolments: readonly T[],
+  academicYearId: string
+): ReadonlyMap<string, T> {
+  const byLearner = new Map<string, T>();
+  for (const enrolment of enrolments) {
+    if (enrolment.status !== 'active' && enrolment.status !== 'repeating') continue;
+    if (academicYearId && enrolment.academic_year_id !== academicYearId) continue;
+    const current = byLearner.get(enrolment.learner_id);
+    if (
+      !current ||
+      enrolment.start_date > current.start_date ||
+      (enrolment.start_date === current.start_date && enrolment.id > current.id)
+    ) {
+      byLearner.set(enrolment.learner_id, enrolment);
+    }
+  }
+  return byLearner;
 }
 
 /**
@@ -73,8 +118,10 @@ export function toSummaryRow(input: SummaryRowInput): StudentFinancialSummary {
     studentId: learner.id,
     admissionNo: learner.admission_number,
     name: `${learner.preferred_name ?? learner.given_name} ${learner.family_name}`.trim(),
-    className: input.className,
-    streamName: input.className,
+    className:
+      classGroupLabel({ gradeLevel: input.classLabel, name: input.streamName ?? '' }) || null,
+    classLabel: input.classLabel,
+    streamName: input.streamName,
     feeAmount: position.billed,
     feeExemption: position.creditNotes,
     feePenalty: input.penalties,
@@ -89,12 +136,26 @@ export function toSummaryRow(input: SummaryRowInput): StudentFinancialSummary {
 /** The query every read of the summary uses: every page, and no assumption about a row count. */
 const EVERY_PAGE = { allPages: true } as const;
 
+/** What a caller may narrow the summary to. Ids, never display names. */
+export interface StudentFinancialSummaryScope {
+  /** The year whose placement labels (and filters) each learner; empty keeps the latest placement. */
+  readonly academicYearId?: string | null;
+  /** Only learners placed at this level (grade); empty means every grade. */
+  readonly levelId?: string | null;
+  /** Only learners placed in this class group (stream); empty means every stream. */
+  readonly classGroupId?: string | null;
+}
+
 /** Reads the canonical documents behind the student financial summary. */
-export function useStudentFinancialSummary() {
+export function useStudentFinancialSummary(scope: StudentFinancialSummaryScope = {}) {
   const repository = useCanonicalRepository();
+  const academicYearId = scope.academicYearId ?? '';
+  const levelId = scope.levelId ?? '';
+  const classGroupId = scope.classGroupId ?? '';
   const learnersQuery = useEntityQuery(repository, 'learner', {}, EVERY_PAGE);
   const enrolmentsQuery = useEntityQuery(repository, 'enrolment', {}, EVERY_PAGE);
   const classGroupsQuery = useEntityQuery(repository, 'class_group', {}, EVERY_PAGE);
+  const levelsQuery = useEntityQuery(repository, 'level', {}, EVERY_PAGE);
   const invoicesQuery = useEntityQuery(repository, 'invoice', {}, EVERY_PAGE);
   const invoiceLinesQuery = useEntityQuery(repository, 'invoice_line', {}, EVERY_PAGE);
   const paymentsQuery = useEntityQuery(repository, 'payment', {}, EVERY_PAGE);
@@ -105,6 +166,7 @@ export function useStudentFinancialSummary() {
     const learners = learnersQuery.data?.items ?? [];
     const enrolments = enrolmentsQuery.data?.items ?? [];
     const classGroups = classGroupsQuery.data?.items ?? [];
+    const levels = levelsQuery.data?.items ?? [];
     const invoices = invoicesQuery.data?.items ?? [];
     const invoiceLines = invoiceLinesQuery.data?.items ?? [];
     const payments = paymentsQuery.data?.items ?? [];
@@ -112,14 +174,8 @@ export function useStudentFinancialSummary() {
     const creditNotes = creditNotesQuery.data?.items ?? [];
 
     const groupById = new Map(classGroups.map((group) => [group.id, group]));
-    const enrolmentByLearner = new Map<string, (typeof enrolments)[number]>();
-    for (const enrolment of enrolments) {
-      if (enrolment.status !== 'active' && enrolment.status !== 'repeating') continue;
-      const current = enrolmentByLearner.get(enrolment.learner_id);
-      if (!current || enrolment.start_date > current.start_date) {
-        enrolmentByLearner.set(enrolment.learner_id, enrolment);
-      }
-    }
+    const levelById = new Map(levels.map((level) => [level.id, level.name]));
+    const enrolmentByLearner = resolveSummaryEnrolments(enrolments, academicYearId);
 
     const invoiceById = new Map(invoices.map((invoice) => [invoice.id, invoice]));
     const penaltyByLearner = new Map<string, number>();
@@ -172,37 +228,47 @@ export function useStudentFinancialSummary() {
       })),
     });
 
-    return learners.map((learner) => {
+    return learners.flatMap((learner) => {
       const enrolment = enrolmentByLearner.get(learner.id);
       const group = enrolment ? groupById.get(enrolment.class_group_id) : undefined;
-      return toSummaryRow({
-        learner,
-        className: group?.name ?? null,
-        position: positions.get(learner.id) ?? {
-          billed: 0,
-          collected: 0,
-          creditNotes: 0,
-          credit: 0,
-          balance: 0,
-        },
-        penalties: penaltyByLearner.get(learner.id) ?? 0,
-        earliestDueDate: dueByLearner.get(learner.id) ?? null,
-      });
+      if (levelId && group?.level_id !== levelId) return [];
+      if (classGroupId && group?.id !== classGroupId) return [];
+      return [
+        toSummaryRow({
+          learner,
+          classLabel: group ? (levelById.get(group.level_id) ?? null) : null,
+          streamName: group?.name ?? null,
+          position: positions.get(learner.id) ?? {
+            billed: 0,
+            collected: 0,
+            creditNotes: 0,
+            credit: 0,
+            balance: 0,
+          },
+          penalties: penaltyByLearner.get(learner.id) ?? 0,
+          earliestDueDate: dueByLearner.get(learner.id) ?? null,
+        }),
+      ];
     });
   }, [
     learnersQuery.data,
     enrolmentsQuery.data,
     classGroupsQuery.data,
+    levelsQuery.data,
     invoicesQuery.data,
     invoiceLinesQuery.data,
     paymentsQuery.data,
     allocationsQuery.data,
     creditNotesQuery.data,
+    academicYearId,
+    levelId,
+    classGroupId,
   ]);
 
   const refetchLearners = learnersQuery.refetch;
   const refetchEnrolments = enrolmentsQuery.refetch;
   const refetchClassGroups = classGroupsQuery.refetch;
+  const refetchLevels = levelsQuery.refetch;
   const refetchInvoices = invoicesQuery.refetch;
   const refetchInvoiceLines = invoiceLinesQuery.refetch;
   const refetchPayments = paymentsQuery.refetch;
@@ -214,6 +280,7 @@ export function useStudentFinancialSummary() {
       refetchLearners(),
       refetchEnrolments(),
       refetchClassGroups(),
+      refetchLevels(),
       refetchInvoices(),
       refetchInvoiceLines(),
       refetchPayments(),
@@ -224,6 +291,7 @@ export function useStudentFinancialSummary() {
     refetchLearners,
     refetchEnrolments,
     refetchClassGroups,
+    refetchLevels,
     refetchInvoices,
     refetchInvoiceLines,
     refetchPayments,
