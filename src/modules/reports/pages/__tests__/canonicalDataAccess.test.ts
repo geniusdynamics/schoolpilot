@@ -100,7 +100,6 @@ const GAP_LEGACY_COLLECTIONS = [
  */
 const PENDING_CANONICAL_MIGRATION: Record<string, string> = {
   'reports/pages/ReportsDashboardPage.tsx': 'learner, staff, department, learning_area',
-  'reports/pages/ClassListsPage.tsx': 'learner, class_group, assessment, grading_scale, mark',
   'reports/pages/ExamResultsHorizontalPage.tsx': 'learner, class_group, level, assessment, mark',
   'reports/pages/FeeCollectionSummaryPage.tsx': 'learner, class_group, academic_period, invoice, payment',
   'reports/pages/StudentFinancialSummaryPage.tsx': 'learner, class_group, academic_period, invoice, payment',
