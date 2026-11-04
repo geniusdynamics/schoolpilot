@@ -1,0 +1,13 @@
+# pnpm settings (moved here from package.json's ignored "pnpm" field — pnpm 11 reads settings from this file)
+# Build-script approvals (pnpm 11 `allowBuilds`). CI runs with PUPPETEER_SKIP_DOWNLOAD=1 (ci.yml),
+# so puppeteer stays false here too; the probe uses CHROMIUM_PATH.
+allowBuilds:
+  '@parcel/watcher': true
+  better-sqlite3: true
+  esbuild: true
+  leveldown: true
+  msgpackr-extract: true
+  puppeteer: false
+  sqlite3: true
+# Installs are explicit (CI: pnpm install --frozen-lockfile); running scripts must not trigger one.
+verify-deps-before-run: false

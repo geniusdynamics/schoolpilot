@@ -262,7 +262,7 @@ and `services/module/moduleHealthMonitor.ts`.
 
 ### 4.7 Startup bundle
 
-Fresh `vite build` on 2026-11-04, measured with `scripts/initialjs.cjs`:
+Fresh `vite build` on 2026-11-04, measured with `scripts/initialjs.mjs`:
 
 | Part | KB gzip |
 | --- | --- |
@@ -375,7 +375,7 @@ All of these are proposals until R0.
 
 **D1 — The metric.** Replace "self-sufficient" with these rules. M5 depends on the layout:
 
-| Rule | Baseline (`scripts/report.cjs`) |
+| Rule | Baseline (`scripts/report.mjs`) |
 | --- | --- |
 | M1 No module imports another module except through `modules/<x>/public.ts` | 34 edges (24 runtime) |
 | M2 No live shared file imports a module, except the composition root and the router | 61 edges from 11 files |
@@ -430,7 +430,7 @@ enforce the directions.
 5. Add the CI budget report.
 
 **D8 — Guardrails that see globs.**
-- Run `scripts/report.cjs` (or its successor) in `ci.yml`, failing when M1–M3 grow past a committed baseline.
+- Run `scripts/report.mjs` (or its successor) in `ci.yml`, failing when M1–M3 grow past a committed baseline.
 - Mirror the simple cases in ESLint `no-restricted-imports` for fast local feedback.
 - Add the spec 06:52 `useAppData` rule.
 - Add a nightly job that deletes one module at a time and type-checks, for M5.
@@ -450,7 +450,7 @@ enforce the directions.
 | --- | --- | --- | --- |
 | R0 | Mr Genius decides: layout A or B; delete or wire (D4); amend `ARCHITECTURE.md:91`; is NFR-02 a hard target; the test-import policy | — | answers recorded in DR-06 |
 | R1 | D9: DR-06, document fixes, `tasks.json` entries | S | no current document states module-owned schemas without a "superseded" note |
-| R2 | Measure in CI, report only: `report.cjs`, `initialjs.cjs` | S | every pull request shows M1–M3, startup paths and initial JS |
+| R2 | Measure in CI, report only: `report.mjs`, `initialjs.mjs` | S | every pull request shows M1–M3, startup paths and initial JS |
 | R3 | Delete the unreachable code in §4.5 (D4) | S | tests green; type ratchet not raised; M2's dead edges = 0 |
 | R4 | D7 step 1: lazy demo seeding (breaks the cycle in §4.2) | S | no `mockData.ts` on the static startup graph |
 | R5 | D8 ratchet on the new baseline | S | a new cross-module import fails CI on a `consolidation` pull request |
@@ -471,11 +471,11 @@ enforce the directions.
 All scripts are in [`scripts/`](scripts/) and read the repository without changing it.
 
 ```sh
-node docs/audit/2026-11-modularity/scripts/graph.cjs . <tmp>/edges.json   # import graph incl. globs
-node docs/audit/2026-11-modularity/scripts/report.cjs <tmp>/edges.json     # M1–M3, cycles, reachability, startup paths
-node docs/audit/2026-11-modularity/scripts/deps.cjs .                      # module.json vs moduleDefinition.tsx
+node scripts/modularity/graph.mjs . <tmp>/edges.json   # import graph incl. globs
+node scripts/modularity/report.mjs <tmp>/edges.json     # M1–M3, cycles, reachability, startup paths
+node scripts/modularity/deps.mjs .                      # module.json vs moduleDefinition.tsx
 npx vite build --outDir <tmp>/dist                                         # ~4.5 min
-node docs/audit/2026-11-modularity/scripts/initialjs.cjs <tmp>/dist        # initial JS and preloaded chunks
+node scripts/modularity/initialjs.mjs <tmp>/dist        # initial JS and preloaded chunks
 ```
 
 - **Graph.** The TypeScript compiler API, over 2,650 files and 12,757 resolved internal edges. It covers static

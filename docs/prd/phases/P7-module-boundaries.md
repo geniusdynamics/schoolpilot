@@ -19,7 +19,7 @@ canonical DDL byte-identical); plug-in host wiring (P6-A01's follow-up).
 **Inputs:** [modularity audit](../../audit/2026-11-modularity/README.md) · [DR-06](../workflow-log/decisions/DR-06.md)
 **Depends on:** P1, P2, P3 · **Runs alongside:** P6 W3–W4 (pilot term, release) · **Estimate:** ≈ 5–7 weeks.
 
-**Baselines** (`docs/audit/2026-11-modularity/scripts/report.mjs`, at `7bbfadb`):
+**Baselines** (`scripts/modularity/report.mjs`, at `7bbfadb`):
 
 | Measure | Value |
 | --- | --- |
@@ -112,7 +112,7 @@ W7  A03 A04 │ Z01                                 NFR-02 gate · removal check
 
 ### Notes for implementers
 
-- **Measure before and after every task.** Run `node docs/audit/2026-11-modularity/scripts/graph.mjs . <tmp>/edges.json`
+- **Measure before and after every task.** Run `node scripts/modularity/graph.mjs . <tmp>/edges.json`
   and then `report.mjs` (from `scripts/modularity/` once P7-A01 lands), and record M1–M3 in the task notes. "Unreachable"
   means unreachable from `src/index.tsx` and `src/server/cli.ts` per the report. The code moves, so re-run it instead of
   trusting the audit's lists.

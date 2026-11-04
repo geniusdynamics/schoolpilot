@@ -319,3 +319,47 @@ jobs:
           echo "Failed: the Postgres harness self-test ran and failed." >> "$GITHUB_STEP_SUMMARY"
           docker rm -f schoolpilot-harness-postgres >/dev/null 2>&1 || true
           exit 1
+
+  modularity:
+    name: Modularity report (report-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Production build (for initial JS)
+        if: always()
+        run: pnpm -s build
+
+      # Report-only: this step never fails. It prints the M1-M3 baselines, the static
+      # startup paths into the modules and the initial JS size into the job summary, using
+      # the same scripts the audit used (scripts/modularity/).
+      - name: Modularity report to job summary
+        if: always()
+        run: |
+          set +e
+          {
+            echo "## Modularity"
+            echo
+            echo '```'
+            node scripts/modularity/graph.mjs . "$RUNNER_TEMP/edges.json"
+            node scripts/modularity/report.mjs "$RUNNER_TEMP/edges.json"
+            node scripts/modularity/initialjs.mjs dist
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0

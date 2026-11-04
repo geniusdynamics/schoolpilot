@@ -1,14 +1,23 @@
 // ABOUTME: Builds the src/ import graph with the TypeScript parser: imports, re-exports, import(), require,
 // ABOUTME: vi.mock, import types, import.meta.glob (expanded) and new URL(..., import.meta.url); writes edges JSON.
-// Usage: node graph.mjs <repoRoot> <outJson>   (uses the repo's node_modules/typescript; reads only)
+// Usage: node graph.mjs <repoRoot> <outJson>   (uses the tree's or the script's node_modules/typescript; reads only)
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(process.argv[2]);
 const OUT = process.argv[3];
-const ts = (await import(pathToFileURL(path.join(ROOT, 'node_modules', 'typescript', 'lib', 'typescript.js')).href)).default;
+// Prefer the scanned tree's own TypeScript; fall back to the script's package so fixture
+// trees (node --test) without node_modules still parse.
+const here = path.dirname(fileURLToPath(import.meta.url));
+const tsCandidates = [
+  path.join(ROOT, 'node_modules', 'typescript', 'lib', 'typescript.js'),
+  path.join(here, '..', '..', 'node_modules', 'typescript', 'lib', 'typescript.js'),
+];
+const tsPath = tsCandidates.find((p) => fs.existsSync(p));
+if (!tsPath) throw new Error('typescript not found: looked in the scanned tree and next to the script');
+const ts = (await import(pathToFileURL(tsPath).href)).default;
 const SRC = path.join(ROOT, 'src');
 const EXTS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'];
 

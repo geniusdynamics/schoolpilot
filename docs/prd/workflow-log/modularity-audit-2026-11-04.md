@@ -27,10 +27,10 @@ ABOUTME: Documentation only; the findings and the proposed plan live in docs/aud
 | File | Change |
 | --- | --- |
 | `docs/audit/2026-11-modularity/README.md` | new: findings, corrections, decisions D1–D9, plan R0–R11 |
-| `docs/audit/2026-11-modularity/scripts/graph.mjs` | new: import graph via the TypeScript parser, globs expanded |
-| `docs/audit/2026-11-modularity/scripts/report.mjs` | new: M1–M3 baselines, cycles, reachability, startup paths |
-| `docs/audit/2026-11-modularity/scripts/deps.mjs` | new: `module.json` vs `moduleDefinition.tsx` dependencies |
-| `docs/audit/2026-11-modularity/scripts/initialjs.mjs` | new: initial JS and preloaded chunks of a build |
+| `scripts/modularity/graph.mjs` | new: import graph via the TypeScript parser, globs expanded |
+| `scripts/modularity/report.mjs` | new: M1–M3 baselines, cycles, reachability, startup paths |
+| `scripts/modularity/deps.mjs` | new: `module.json` vs `moduleDefinition.tsx` dependencies |
+| `scripts/modularity/initialjs.mjs` | new: initial JS and preloaded chunks of a build |
 | `docs/architecture/MODULE_STRUCTURE_STANDARD.md` | status note: the cross-module advice does not match the code |
 | `docs/architecture/module-dependency-system.md` | status note: the described machinery is not on the runtime path |
 | `ARCHITECTURE.md` | one row in "Where to look" pointing at the audit |
