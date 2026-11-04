@@ -234,6 +234,15 @@
     "month": "Ukwezi",
     "year": "Umwaka"
   },
+  "scope": {
+    "year": "Umwaka",
+    "class": "Icyiciro",
+    "stream": "Ishami",
+    "period": "Igihe",
+    "allClasses": "Ibyiciro byose",
+    "allStreams": "Amashami yose",
+    "allPeriods": "Ibihe byose"
+  },
   "appName": "SchoolPilot",
   "loading": "Gupakira",
   "save": "Bika",

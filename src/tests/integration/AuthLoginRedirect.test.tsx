@@ -108,15 +108,16 @@ vi.mock('/src/modules/core/pages/LoginPage', async () => {
 
   const { useEffect } = await import('react');
   const { useNavigate } = await import('react-router-dom');
+  const RedirectingLoginPage = () => {
+    const navigate = useNavigate();
+    useEffect(() => {
+      navigate('/dashboard', { replace: true });
+    }, [navigate]);
+    return <div data-testid="login-page">Login page</div>;
+  };
   return {
     __esModule: true,
-    default: () => {
-      const navigate = useNavigate();
-      useEffect(() => {
-        navigate('/dashboard', { replace: true });
-      }, [navigate]);
-      return <div data-testid="login-page">Login page</div>;
-    },
+    default: RedirectingLoginPage,
   };
 });
 
@@ -148,13 +149,15 @@ describe('App auth route regression', () => {
 
     render(<App />);
 
+    // Under the full related-tests batch the whole App (auth gate, module loader, lazy routes)
+    // takes longer than 5 s to mount the login route; the test's own budget is 20 s, so wait for it.
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard', expect.any(Object));
-    }, { timeout: 5000 });
+    }, { timeout: 15000 });
 
     await waitFor(() => {
       expect(window.location.hash).toBe('#/dashboard');
-    }, { timeout: 5000 });
+    }, { timeout: 15000 });
 
     expect(screen.queryByTestId('login-page')).not.toBeInTheDocument();
   }, 20000);

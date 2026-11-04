@@ -1,8 +1,10 @@
 // ABOUTME: Fees due report: learners with an outstanding balance, aged from their earliest due
-// ABOUTME: invoice. It reads the canonical student financial summary, in exact minor units.
+// ABOUTME: invoice. It reads the canonical student financial summary, in exact minor units, and scopes
+// ABOUTME: every row to the shared Year, Class and Stream by id.
 
 import React, { useMemo, useState } from 'react';
 
+import { AcademicScopeFilterBar, useAcademicScope } from '@/academic-scope';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -36,7 +38,8 @@ interface DueRow {
   readonly id: string;
   readonly learnerName: string;
   readonly admissionNumber: string;
-  readonly className: string;
+  readonly classLabel: string;
+  readonly streamName: string;
   readonly totalMinor: number;
   readonly paidMinor: number;
   readonly balanceMinor: number;
@@ -46,9 +49,13 @@ interface DueRow {
 }
 
 export const FeesDueReportPageContent: React.FC = () => {
-  const { data: summaries, loading } = useStudentFinancialSummary();
+  const scope = useAcademicScope();
+  const { data: summaries, loading } = useStudentFinancialSummary({
+    academicYearId: scope.scope.effective.yearId,
+    levelId: scope.scope.effective.levelId,
+    classGroupId: scope.scope.effective.classGroupId,
+  });
   const [search, setSearch] = useState('');
-  const [classFilter, setClassFilter] = useState('');
   const [agingFilter, setAgingFilter] = useState('');
 
   const rows = useMemo<readonly DueRow[]>(() => {
@@ -65,7 +72,8 @@ export const FeesDueReportPageContent: React.FC = () => {
           id: summary.studentId,
           learnerName: summary.name,
           admissionNumber: summary.admissionNo,
-          className: summary.className ?? '',
+          classLabel: summary.classLabel ?? '',
+          streamName: summary.streamName ?? '',
           totalMinor: summary.feeAmount + summary.feePenalty,
           paidMinor: summary.amountPaid,
           balanceMinor: summary.balance,
@@ -77,11 +85,6 @@ export const FeesDueReportPageContent: React.FC = () => {
       .sort((left, right) => left.learnerName.localeCompare(right.learnerName));
   }, [summaries]);
 
-  const classNames = useMemo(
-    () => [...new Set(rows.map((row) => row.className).filter(Boolean))].sort(),
-    [rows]
-  );
-
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return rows.filter((row) => {
@@ -92,11 +95,10 @@ export const FeesDueReportPageContent: React.FC = () => {
       ) {
         return false;
       }
-      if (classFilter && row.className !== classFilter) return false;
       if (agingFilter && row.aging !== agingFilter) return false;
       return true;
     });
-  }, [rows, search, classFilter, agingFilter]);
+  }, [rows, search, agingFilter]);
 
   const totals = useMemo(
     () =>
@@ -114,7 +116,8 @@ export const FeesDueReportPageContent: React.FC = () => {
   const columns: DataGridColumn<DueRow>[] = [
     { key: 'learnerName', header: 'Learner', sortable: true, filterable: true },
     { key: 'admissionNumber', header: 'Adm no', sortable: true, filterable: true },
-    { key: 'className', header: 'Class', sortable: true, filterable: true },
+    { key: 'classLabel', header: 'Class', sortable: true, filterable: true },
+    { key: 'streamName', header: 'Stream', sortable: true, filterable: true },
     {
       key: 'totalMinor',
       header: 'Billed',
@@ -157,7 +160,7 @@ export const FeesDueReportPageContent: React.FC = () => {
         </span>
       }
     >
-      <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <AcademicScopeFilterBar scope={scope} period="none" className="mb-4">
         <div>
           <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Search</span>
           <Input
@@ -167,28 +170,18 @@ export const FeesDueReportPageContent: React.FC = () => {
           />
         </div>
         <div>
-          <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Class</span>
           <Select
-            value={classFilter}
-            onChange={(event) => setClassFilter(event.target.value)}
-            options={[
-              { value: '', label: 'All classes' },
-              ...classNames.map((name) => ({ value: name, label: name })),
-            ]}
-          />
-        </div>
-        <div>
-          <span className="mb-1.5 block text-sm font-medium text-surface-foreground">Aging</span>
-          <Select
+            label="Aging"
+            aria-label="Aging"
             value={agingFilter}
-            onChange={(event) => setAgingFilter(event.target.value)}
+            onValueChange={(value) => setAgingFilter(Array.isArray(value) ? '' : value)}
             options={[
               { value: '', label: 'Every bucket' },
               ...AGING_CATEGORIES.map((category) => ({ value: category, label: category })),
             ]}
           />
         </div>
-      </div>
+      </AcademicScopeFilterBar>
 
       <div className="mb-4 flex flex-wrap gap-6 text-sm">
         <span>

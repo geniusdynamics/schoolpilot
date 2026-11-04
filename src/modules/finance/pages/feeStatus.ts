@@ -1,14 +1,16 @@
-// ABOUTME: The fee status report's arithmetic: billed, collected and outstanding per class and vote
-// ABOUTME: head, with the distinct learners behind each row. It is pure so the page and its test read
-// ABOUTME: the same figures, and no amount passes through a float.
+// ABOUTME: The fee status report's arithmetic: billed, collected and outstanding per class-group and
+// ABOUTME: vote head, with the distinct learners behind each row. It is pure so the page and its test
+// ABOUTME: read the same figures, and no amount passes through a float.
 
 import type { FinanceInvoiceLineRow, FinanceLearnerRow } from '../data/canonicalFinance';
 
 export interface FeeStatusFilters {
   /** Only lines of this academic period; empty means every period. */
   readonly periodId: string;
-  /** Only learners placed in this class group; empty means every class. */
-  readonly className: string;
+  /** Only learners placed at this level (grade); empty means every grade. */
+  readonly levelId: string;
+  /** Only learners placed in this class group (stream); empty means every stream. */
+  readonly classGroupId: string;
   /** Only this fee item; empty means every vote head. */
   readonly feeItemId: string;
   /** Keep only rows whose collected amount is below the billed amount. */
@@ -16,8 +18,13 @@ export interface FeeStatusFilters {
 }
 
 export interface FeeStatusRow {
+  /** The class-group id and the vote-head identity, so the row survives a rename. */
   readonly id: string;
-  readonly className: string;
+  readonly classGroupId: string;
+  /** The grade (level) name, e.g. "Grade 7". */
+  readonly classLabel: string;
+  /** The stream (class group) name, e.g. "East". */
+  readonly streamName: string;
   readonly feeItem: string;
   readonly learners: number;
   readonly billedMinor: number;
@@ -42,10 +49,13 @@ export interface FeeStatusReport {
 
 export const EMPTY_FEE_STATUS_FILTERS: FeeStatusFilters = {
   periodId: '',
-  className: '',
+  levelId: '',
+  classGroupId: '',
   feeItemId: '',
   arrearsOnly: false,
 };
+
+const UNASSIGNED = 'Unassigned';
 
 const percentOf = (part: number, whole: number): number =>
   whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0;
@@ -62,11 +72,14 @@ export function feeItemLabel(
 }
 
 /**
- * Groups posted invoice lines by class and vote head.
+ * Groups posted invoice lines by class-group and vote head.
  *
  * A line's `paid` is the share of the payments already allocated to it, so billed minus paid is the
  * outstanding share. `learners` counts the distinct learners behind the lines, not the lines: a
  * learner with two tuition lines is one learner on the report.
+ *
+ * The class-group id is the group identity, never the display text: two grades both name a stream
+ * "East", and grouping by that name merged two different classes into one row.
  */
 export function buildFeeStatusReport(input: {
   readonly lines: readonly FinanceInvoiceLineRow[];
@@ -74,12 +87,14 @@ export function buildFeeStatusReport(input: {
   readonly feeItems: readonly { readonly id: string; readonly code: string; readonly name: string }[];
   readonly filters: FeeStatusFilters;
 }): FeeStatusReport {
-  const learnerClass = new Map(input.learners.map((learner) => [learner.id, learner.className]));
+  const learnerById = new Map(input.learners.map((learner) => [learner.id, learner]));
   const feeItems = new Map(input.feeItems.map((item) => [item.id, item]));
   const groups = new Map<
     string,
     {
-      className: string;
+      classGroupId: string;
+      classLabel: string;
+      streamName: string;
       feeItem: string;
       learners: Set<string>;
       billedMinor: number;
@@ -90,15 +105,24 @@ export function buildFeeStatusReport(input: {
   for (const line of input.lines) {
     if (line.invoiceStatus === 'draft' || line.invoiceStatus === 'void') continue;
     if (input.filters.periodId && line.periodId !== input.filters.periodId) continue;
-    const className = line.learnerId ? (learnerClass.get(line.learnerId) ?? 'Unassigned') : 'Unassigned';
-    if (input.filters.className && className !== input.filters.className) continue;
+    const learner = line.learnerId ? learnerById.get(line.learnerId) : undefined;
+    if (input.filters.levelId && learner?.levelId !== input.filters.levelId) continue;
+    if (input.filters.classGroupId && learner?.classGroupId !== input.filters.classGroupId) continue;
     const itemId = line.row.fee_item_id ?? '';
     if (input.filters.feeItemId && itemId !== input.filters.feeItemId) continue;
 
+    const classGroupId = learner?.classGroupId ?? '';
+    const classLabel = learner?.classLabel || (classGroupId ? '' : UNASSIGNED);
+    const streamName = learner?.streamName ?? '';
     const feeItem = feeItemLabel(line, feeItems);
-    const key = `${className}\u0000${feeItem}`;
+    // A line with no fee item is identified by its own description, so two unassigned lines of
+    // different vote heads do not merge into one row.
+    const itemKey = itemId || `description:${line.description}`;
+    const key = `${classGroupId || 'unassigned'}\u0000${itemKey}`;
     const group = groups.get(key) ?? {
-      className,
+      classGroupId,
+      classLabel,
+      streamName,
       feeItem,
       learners: new Set<string>(),
       billedMinor: 0,
@@ -110,12 +134,14 @@ export function buildFeeStatusReport(input: {
     groups.set(key, group);
   }
 
-  const rows: FeeStatusRow[] = [...groups.values()]
-    .map((group) => {
+  const rows: FeeStatusRow[] = [...groups.entries()]
+    .map(([key, group]) => {
       const balanceMinor = group.billedMinor - group.paidMinor;
       return {
-        id: `${group.className}\u0000${group.feeItem}`,
-        className: group.className,
+        id: key,
+        classGroupId: group.classGroupId,
+        classLabel: group.classLabel,
+        streamName: group.streamName,
         feeItem: group.feeItem,
         learners: group.learners.size,
         billedMinor: group.billedMinor,
@@ -127,7 +153,9 @@ export function buildFeeStatusReport(input: {
     .filter((row) => !input.filters.arrearsOnly || row.balanceMinor > 0)
     .sort(
       (left, right) =>
-        left.className.localeCompare(right.className) || left.feeItem.localeCompare(right.feeItem)
+        left.classLabel.localeCompare(right.classLabel) ||
+        left.streamName.localeCompare(right.streamName) ||
+        left.feeItem.localeCompare(right.feeItem)
     );
 
   const learnerIds = new Set<string>();

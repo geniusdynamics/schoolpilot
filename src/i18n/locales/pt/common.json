@@ -234,6 +234,15 @@
     "month": "Mês",
     "year": "Ano"
   },
+  "scope": {
+    "year": "Ano",
+    "class": "Classe",
+    "stream": "Série",
+    "period": "Período",
+    "allClasses": "Todas as classes",
+    "allStreams": "Todas as séries",
+    "allPeriods": "Todos os períodos"
+  },
   "appName": "SchoolPilot",
   "loading": "A carregar",
   "save": "Guardar",

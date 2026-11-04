@@ -234,6 +234,15 @@
     "month": "Month",
     "year": "Year"
   },
+  "scope": {
+    "year": "Year",
+    "class": "Class",
+    "stream": "Stream",
+    "period": "Period",
+    "allClasses": "All classes",
+    "allStreams": "All streams",
+    "allPeriods": "All periods"
+  },
   "appName": "SchoolPilot",
   "loading": "Loading",
   "save": "Save",

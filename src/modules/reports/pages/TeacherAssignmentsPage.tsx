@@ -31,20 +31,17 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
     let filteredAssignments = [...(teacherSubjectAssignments || [])];
 
     if (selectedAcademicYearId) {
-      // This relies on teacherSubjectAssignments already having academic_year_name denormalized,
-      // or academic_year_id if we had it on TeacherSubjectAssignment type directly or via allocation.
-      // For now, we assume academic_year_name is present.
-      const ayName = (academicYears || []).find(ay => String(ay.id) === selectedAcademicYearId)?.name;
-      if (ayName) {
-        filteredAssignments = filteredAssignments.filter(a => a.academic_year_name === ayName);
-      }
+      // Two years can share a display name, so the year is matched by id, never by name.
+      filteredAssignments = filteredAssignments.filter(
+        (assignment) => assignment.academic_year_id === selectedAcademicYearId
+      );
     }
     if (selectedTeacherId) {
       filteredAssignments = filteredAssignments.filter(a => a.teacher_id === selectedTeacherId);
     }
     setReportData(filteredAssignments);
     setIsGenerating(false);
-  }, [teacherSubjectAssignments, selectedAcademicYearId, selectedTeacherId, academicYears]);
+  }, [teacherSubjectAssignments, selectedAcademicYearId, selectedTeacherId]);
 
   // Generate report on initial mount
   useEffect(() => {

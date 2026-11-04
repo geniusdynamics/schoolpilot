@@ -2,8 +2,10 @@
 // ABOUTME: Consumes the DR-04 lookup contract by injection, so it stays independent of the query hooks.
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckIcon, ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import Spinner from '../Spinner';
+import { useAnchoredPopup } from '../popper';
 
 export type EntityPickerStatus = 'idle' | 'loading' | 'refreshing' | 'success' | 'error';
 
@@ -115,6 +117,7 @@ export function EntityPicker<Row, Id extends string = string>({
 
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef(lookup.search);
   searchRef.current = lookup.search;
@@ -339,9 +342,12 @@ export function EntityPicker<Row, Id extends string = string>({
 
   const handleRootBlur = useCallback(
     (event: React.FocusEvent<HTMLDivElement>) => {
-      // Close only when focus leaves the picker, so Tab can move into popup content.
+      // Close only when focus leaves the picker, so Tab can move into popup content. The popup
+      // lives in a portal on document.body, so it counts as inside the picker.
       const next = event.relatedTarget;
-      if (next instanceof Node && rootRef.current?.contains(next)) return;
+      if (next instanceof Node && (rootRef.current?.contains(next) || popupRef.current?.contains(next))) {
+        return;
+      }
       closePicker();
     },
     [closePicker]
@@ -428,10 +434,10 @@ export function EntityPicker<Row, Id extends string = string>({
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
-        setOpen(false);
-        setActiveIndex(-1);
-      }
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || popupRef.current?.contains(target)) return;
+      setOpen(false);
+      setActiveIndex(-1);
     };
     document.addEventListener('mousedown', handlePointerDown);
     return () => document.removeEventListener('mousedown', handlePointerDown);
@@ -471,6 +477,10 @@ export function EntityPicker<Row, Id extends string = string>({
     const text = lookup.describe?.(option) ?? lookup.label(optionId, optionId);
     return lookup.isArchived?.(option) ? archivedLabel(text) : text;
   };
+
+  // The popup is portalled to document.body and pinned to the trigger, so an overflow-hidden
+  // ancestor (a Card near its bottom edge, a grid cell) can never clip the open list.
+  const popupAnchor = useAnchoredPopup(open, triggerRef, popupRef);
 
   return (
     <div
@@ -548,11 +558,15 @@ export function EntityPicker<Row, Id extends string = string>({
           </button>
         ) : null}
 
-        {open ? (
-          <div
-            id={popupId}
-            className="absolute z-50 mt-1.5 w-full animate-slide-down rounded-xl border border-surface-border bg-surface-popover shadow-lg"
-          >
+        {open && typeof document !== 'undefined'
+          ? createPortal(
+              <div
+                id={popupId}
+                ref={popupRef}
+                className="overflow-auto rounded-xl border border-surface-border bg-surface-popover shadow-lg animate-slide-down"
+                style={popupAnchor.style}
+                data-placement={popupAnchor.placement}
+              >
             <div className="border-b border-surface-border p-2">
               <input
                 ref={searchInputRef}
@@ -655,8 +669,10 @@ export function EntityPicker<Row, Id extends string = string>({
                 })}
               </div>
             ) : null}
-          </div>
-        ) : null}
+              </div>,
+              document.body
+            )
+          : null}
       </div>
 
       {helperText && !error ? (

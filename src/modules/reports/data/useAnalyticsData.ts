@@ -1,207 +1,188 @@
-﻿import { useState, useEffect } from 'react';
-import { logger } from '@/utils/logging';
+﻿// ABOUTME: The analytics hook: reads the canonical calendar, class, enrolment, assessment, mark,
+// ABOUTME: teaching and attendance rows, then computes every figure through analyticsFromRows.
 
+import { useMemo } from 'react';
 
-interface ClassPerformance {
-  classId: string;
-  className: string;
-  streamName?: string | null;
-  averageScore: number;
-  passRate: number;
-  totalStudents: number;
-  submittedCount: number;
-  gradedCount: number;
-  attendanceRate: number;
-  assignmentCompletionRate: number;
+import { useCanonicalRepository } from '@/data/canonicalRepository';
+import { useEntityQuery } from '@/data/query';
+
+import { analyticsFromRows, type AnalyticsRows } from './analyticsFromRows';
+import type { AnalyticsPeriod, AnalyticsResult, AnalyticsScopeOptions } from './analyticsTypes';
+
+/** These tables grow with the school, so a page reads every page, not the repository's first. */
+const EVERY_PAGE = { allPages: true } as const;
+
+export interface UseAnalyticsDataReturn extends AnalyticsResult {
+  readonly loading: boolean;
+  readonly error: unknown;
+  /** The periods of the chosen year, in date order. */
+  readonly availablePeriods: readonly AnalyticsPeriod[];
 }
 
-interface SubjectPassRate {
-  subjectId: string;
-  subjectName: string;
-  averageScore: number;
-  passRate: number;
-  totalStudents: number;
-  submittedCount: number;
-}
+/**
+ * Reads the canonical rows and computes the analytics for one scope.
+ *
+ * There is no timer and no placeholder: the figures land when the row reads settle, and a metric
+ * the school has not recorded is null rather than a stand-in.
+ */
+export function useAnalyticsData(options: AnalyticsScopeOptions = {}): UseAnalyticsDataReturn {
+  const { academicYearId = null, periodId = null, levelId = null, classGroupId = null } = options;
+  const repository = useCanonicalRepository();
 
-interface TeacherAnalytics {
-  teacherId: string;
-  teacherName: string;
-  totalClasses: number;
-  averageScore: number;
-  passRate: number;
-  studentCount: number;
-  assignmentCompletionRate: number;
-}
+  const periodsQuery = useEntityQuery(repository, 'academic_period', {}, EVERY_PAGE);
+  const classGroupsQuery = useEntityQuery(repository, 'class_group', {}, EVERY_PAGE);
+  const levelsQuery = useEntityQuery(repository, 'level', {}, EVERY_PAGE);
+  const learningAreasQuery = useEntityQuery(repository, 'learning_area', {}, EVERY_PAGE);
+  const enrolmentsQuery = useEntityQuery(repository, 'enrolment', {}, EVERY_PAGE);
+  const learnersQuery = useEntityQuery(repository, 'learner', {}, EVERY_PAGE);
+  const assessmentsQuery = useEntityQuery(repository, 'assessment', {}, EVERY_PAGE);
+  const marksQuery = useEntityQuery(repository, 'mark', {}, EVERY_PAGE);
+  const teachingGroupsQuery = useEntityQuery(repository, 'teaching_group', {}, EVERY_PAGE);
+  const teachingAssignmentsQuery = useEntityQuery(repository, 'teaching_assignment', {}, EVERY_PAGE);
+  const staffQuery = useEntityQuery(repository, 'staff', {}, EVERY_PAGE);
+  const gradingScalesQuery = useEntityQuery(repository, 'grading_scale', {}, EVERY_PAGE);
+  const attendanceSessionsQuery = useEntityQuery(repository, 'attendance_session', {}, EVERY_PAGE);
+  const attendanceMarksQuery = useEntityQuery(repository, 'attendance_mark', {}, EVERY_PAGE);
 
-interface AnalyticsPeriod {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-}
+  const queries = [
+    periodsQuery,
+    classGroupsQuery,
+    levelsQuery,
+    learningAreasQuery,
+    enrolmentsQuery,
+    learnersQuery,
+    assessmentsQuery,
+    marksQuery,
+    teachingGroupsQuery,
+    teachingAssignmentsQuery,
+    staffQuery,
+    gradingScalesQuery,
+    attendanceSessionsQuery,
+    attendanceMarksQuery,
+  ];
+  const loading = queries.some((query) => query.status === 'loading' || query.status === 'idle');
+  const failed = queries.find((query) => query.status === 'error');
+  const error = failed?.error ?? null;
 
-interface UseAnalyticsDataReturn {
-  classPerformances: ClassPerformance[];
-  subjectPassRates: SubjectPassRate[];
-  teacherAnalytics: TeacherAnalytics[];
-  loading: boolean;
-  selectedPeriod: AnalyticsPeriod | null;
-  setSelectedPeriod: (period: AnalyticsPeriod | null) => void;
-  availablePeriods: AnalyticsPeriod[];
-}
+  const rows = useMemo<AnalyticsRows>(
+    () => ({
+      periods: (periodsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        academic_year_id: row.academic_year_id,
+        start_date: row.start_date,
+        end_date: row.end_date,
+      })),
+      classGroups: (classGroupsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        level_id: row.level_id,
+        academic_year_id: row.academic_year_id,
+      })),
+      levels: (levelsQuery.data?.items ?? []).map((row) => ({ id: row.id, name: row.name })),
+      learningAreas: (learningAreasQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+      })),
+      enrolments: (enrolmentsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        learner_id: row.learner_id,
+        class_group_id: row.class_group_id,
+        academic_year_id: row.academic_year_id,
+        status: row.status,
+      })),
+      learners: (learnersQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        given_name: row.given_name,
+        family_name: row.family_name,
+      })),
+      assessments: (assessmentsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        academic_period_id: row.academic_period_id,
+        learning_area_ids: row.learning_area_ids ?? [],
+        class_group_ids: row.class_group_ids ?? [],
+        level_ids: row.level_ids ?? [],
+        max_score: row.max_score ?? null,
+        grading_scale_id: row.grading_scale_id ?? null,
+      })),
+      marks: (marksQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        assessment_id: row.assessment_id,
+        enrolment_id: row.enrolment_id,
+        learning_area_id: row.learning_area_id,
+        score: row.score ?? null,
+        status_code: row.status_code,
+      })),
+      teachingGroups: (teachingGroupsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        academic_year_id: row.academic_year_id,
+        learning_area_id: row.learning_area_id,
+        class_group_ids: row.class_group_ids ?? [],
+        teacher_ids: row.teacher_ids ?? [],
+      })),
+      teachingAssignments: (teachingAssignmentsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        staff_id: row.staff_id,
+        teaching_group_id: row.teaching_group_id,
+        valid_from: row.valid_from,
+        valid_to: row.valid_to ?? null,
+      })),
+      staff: (staffQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        given_name: row.given_name,
+        family_name: row.family_name,
+      })),
+      gradingScales: (gradingScalesQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        code: row.code,
+        bands: row.bands.map((band) => ({
+          min: band.min,
+          max: band.max,
+          // The canonical band carries no pass flag; a marker on the stored row, if one ever
+          // exists, is the only thing that can turn a pass rate on.
+          ...((band as typeof band & { is_pass?: boolean }).is_pass === true ? { is_pass: true } : {}),
+        })),
+      })),
+      attendanceSessions: (attendanceSessionsQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        class_group_id: row.class_group_id ?? null,
+        academic_period_id: row.academic_period_id ?? null,
+        date: row.date,
+      })),
+      attendanceMarks: (attendanceMarksQuery.data?.items ?? []).map((row) => ({
+        id: row.id,
+        attendance_session_id: row.attendance_session_id,
+        status: row.status,
+      })),
+    }),
+    [
+      periodsQuery.data,
+      classGroupsQuery.data,
+      levelsQuery.data,
+      learningAreasQuery.data,
+      enrolmentsQuery.data,
+      learnersQuery.data,
+      assessmentsQuery.data,
+      marksQuery.data,
+      teachingGroupsQuery.data,
+      teachingAssignmentsQuery.data,
+      staffQuery.data,
+      gradingScalesQuery.data,
+      attendanceSessionsQuery.data,
+      attendanceMarksQuery.data,
+    ]
+  );
 
-const mockPeriods: AnalyticsPeriod[] = [
-  {
-    id: 'period-1',
-    name: 'First Term',
-    startDate: '2024-01-01',
-    endDate: '2024-03-31',
-  },
-  {
-    id: 'period-2',
-    name: 'Second Term',
-    startDate: '2024-04-01',
-    endDate: '2024-06-30',
-  },
-  {
-    id: 'period-3',
-    name: 'Third Term',
-    startDate: '2024-07-01',
-    endDate: '2024-09-30',
-  },
-];
-
-const mockClassPerformances: ClassPerformance[] = [
-  {
-    classId: 'class-1',
-    className: 'Grade 10A',
-    streamName: 'Science',
-    averageScore: 78.5,
-    passRate: 85,
-    totalStudents: 45,
-    submittedCount: 42,
-    gradedCount: 40,
-    attendanceRate: 92,
-    assignmentCompletionRate: 88,
-  },
-  {
-    classId: 'class-2',
-    className: 'Grade 10B',
-    streamName: 'Arts',
-    averageScore: 72.3,
-    passRate: 78,
-    totalStudents: 48,
-    submittedCount: 45,
-    gradedCount: 43,
-    attendanceRate: 89,
-    assignmentCompletionRate: 82,
-  },
-  {
-    classId: 'class-3',
-    className: 'Grade 11A',
-    streamName: 'Science',
-    averageScore: 81.2,
-    passRate: 88,
-    totalStudents: 52,
-    submittedCount: 50,
-    gradedCount: 48,
-    attendanceRate: 94,
-    assignmentCompletionRate: 91,
-  },
-];
-
-const mockSubjectPassRates: SubjectPassRate[] = [
-  {
-    subjectId: 'math-101',
-    subjectName: 'Mathematics',
-    averageScore: 75.8,
-    passRate: 82,
-    totalStudents: 95,
-    submittedCount: 92,
-  },
-  {
-    subjectId: 'sci-101',
-    subjectName: 'Science',
-    averageScore: 79.4,
-    passRate: 87,
-    totalStudents: 92,
-    submittedCount: 89,
-  },
-  {
-    subjectId: 'eng-101',
-    subjectName: 'English',
-    averageScore: 73.2,
-    passRate: 80,
-    totalStudents: 97,
-    submittedCount: 95,
-  },
-  {
-    subjectId: 'soc-101',
-    subjectName: 'Social Studies',
-    averageScore: 76.6,
-    passRate: 84,
-    totalStudents: 93,
-    submittedCount: 91,
-  },
-];
-
-const mockTeacherAnalytics: TeacherAnalytics[] = [
-  {
-    teacherId: 'teacher-1',
-    teacherName: 'John Smith',
-    totalClasses: 12,
-    averageScore: 77.5,
-    passRate: 84,
-    studentCount: 180,
-    assignmentCompletionRate: 86,
-  },
-  {
-    teacherId: 'teacher-2',
-    teacherName: 'Jane Doe',
-    totalClasses: 10,
-    averageScore: 79.8,
-    passRate: 86,
-    studentCount: 150,
-    assignmentCompletionRate: 88,
-  },
-  {
-    teacherId: 'teacher-3',
-    teacherName: 'Michael Brown',
-    totalClasses: 14,
-    averageScore: 75.2,
-    passRate: 81,
-    studentCount: 210,
-    assignmentCompletionRate: 83,
-  },
-];
-
-export function useAnalyticsData(): UseAnalyticsDataReturn {
-  const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState<AnalyticsPeriod | null>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        setLoading(false);
-      } catch (err) {
-        logger.error('Failed to load analytics data:', err);
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
+  const result = useMemo(
+    () => analyticsFromRows(rows, { academicYearId, periodId, levelId, classGroupId }),
+    [rows, academicYearId, periodId, levelId, classGroupId]
+  );
 
   return {
-    classPerformances: mockClassPerformances,
-    subjectPassRates: mockSubjectPassRates,
-    teacherAnalytics: mockTeacherAnalytics,
+    ...result,
+    availablePeriods: result.periods,
     loading,
-    selectedPeriod,
-    setSelectedPeriod,
-    availablePeriods: mockPeriods,
+    error,
   };
 }
 

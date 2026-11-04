@@ -1,10 +1,14 @@
-import React, { useState, useMemo } from 'react';
+// ABOUTME: The analytics trends screen: one real point per period that recorded the chosen metric,
+// ABOUTME: plotted and tabulated from canonical marks and attendance, with no synthesised history.
+
+import React, { useMemo, useState } from 'react';
+
 import {
-  ChartBarIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  ChartPieIcon,
   AcademicCapIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChartBarIcon,
+  ChartPieIcon,
   CheckCircleIcon,
   UsersIcon,
 } from '@/components/ui/icons';
@@ -13,309 +17,221 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { DashboardMetric } from '@/components/ModuleDashboardShell';
-import { useAnalyticsData } from '../../data/useAnalyticsData';
 
-type TrendMetric = 'passRate' | 'attendance' | 'performance';
-type PeriodOption = 'week' | 'month' | 'term' | 'year';
+import type { TrendMetric, TrendPoint } from '../../data/analyticsTypes';
+import { AnalyticsEmptyCard, AnalyticsScopeCard } from './AnalyticsScopeCard';
+import { useReportAnalyticsScope } from './useReportAnalyticsScope';
 
-interface TrendDataPoint {
-  date: string;
-  value: number;
-  change: number;
+const METRICS: readonly { readonly id: TrendMetric; readonly label: string }[] = [
+  { id: 'performance', label: 'Performance' },
+  { id: 'passRate', label: 'Pass rate' },
+  { id: 'attendance', label: 'Attendance' },
+];
+
+function metricIcon(metric: TrendMetric): React.ReactNode {
+  if (metric === 'passRate') return <CheckCircleIcon className="h-6 w-6 text-emerald-700" />;
+  if (metric === 'attendance') return <UsersIcon className="h-6 w-6 text-primary-700" />;
+  return <AcademicCapIcon className="h-6 w-6 text-violet-700" />;
 }
 
+function directionOf(change: number | null): 'up' | 'down' | 'stable' | null {
+  if (change === null) return null;
+  if (change > 1) return 'up';
+  if (change < -1) return 'down';
+  return 'stable';
+}
+
+const LineChart: React.FC<{ readonly data: readonly TrendPoint[] }> = ({ data }) => {
+  const minValue = Math.min(...data.map((point) => point.value));
+  const maxValue = Math.max(...data.map((point) => point.value));
+  const range = maxValue - minValue || 1;
+  const chartHeight = 200;
+  const chartWidth = 100;
+
+  const pointY = (value: number) => chartHeight - ((value - minValue) / range) * (chartHeight - 20) - 10;
+  const pointX = (index: number) => (data.length <= 1 ? chartWidth / 2 : (index / (data.length - 1)) * chartWidth);
+  const pathPoints = data.map((point, index) => `${pointX(index)},${pointY(point.value)}`).join(' ');
+  const areaPath = `0,${chartHeight} ${pathPoints} ${chartWidth},${chartHeight}`;
+
+  return (
+    <div className="relative w-full">
+      <svg
+        viewBox={`0 0 100 ${chartHeight}`}
+        preserveAspectRatio="none"
+        className="w-full"
+        style={{ height: `${chartHeight}px` }}
+        role="img"
+        aria-label="Recorded values by period"
+      >
+        {[0, 25, 50, 75, 100].map((pct) => {
+          const y = chartHeight - (pct / 100) * chartHeight;
+          return (
+            <g key={pct}>
+              <line x1="0" y1={y} x2="100" y2={y} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2,2" />
+              <text x="-1" y={y + 2} textAnchor="end" fontSize="4" fill="#9ca3af">
+                {Math.round(minValue + (pct / 100) * range)}%
+              </text>
+            </g>
+          );
+        })}
+
+        <polygon points={areaPath} fill="url(#trend-gradient)" opacity="0.3" />
+
+        <defs>
+          <linearGradient id="trend-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        <polyline
+          points={pathPoints}
+          fill="none"
+          stroke="#6366f1"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {data.map((point, index) => (
+          <g key={point.periodId}>
+            <circle cx={pointX(index)} cy={pointY(point.value)} r="2" fill="#6366f1" stroke="white" strokeWidth="0.5" />
+            {data.length <= 8 && (
+              <text
+                x={pointX(index)}
+                y={chartHeight - 2}
+                textAnchor="middle"
+                fontSize="3"
+                fill="#6b7280"
+                transform={`rotate(-30, ${pointX(index)}, ${chartHeight - 2})`}
+              >
+                {point.periodName.length > 12 ? `${point.periodName.slice(0, 12)}…` : point.periodName}
+              </text>
+            )}
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+};
+
 const AnalyticsTrendsPage: React.FC = () => {
+  const { scopeState, analytics, hasYear, loading, error } = useReportAnalyticsScope('optional');
+  const [activeMetric, setActiveMetric] = useState<TrendMetric>('performance');
 
-  const {
-    subjectPassRates,
-    classPerformances,
-    loading,
-    selectedPeriod,
-    setSelectedPeriod,
-  } = useAnalyticsData();
+  const series = analytics.trends[activeMetric];
+  const points = series.points;
 
-  const [period, setPeriod] = useState<PeriodOption>('term');
-  const [activeMetric, setActiveMetric] = useState<TrendMetric>('passRate');
-
-  // Generate synthetic trend data based on available data and selected period/period option
-  const generateTrendData = useMemo((): TrendDataPoint[] => {
-    const points: number = period === 'week' ? 7 : period === 'month' ? 4 : period === 'term' ? 6 : 12;
-    const data: TrendDataPoint[] = [];
-
-    if (activeMetric === 'passRate' && subjectPassRates.length > 0) {
-      const basePassRate = Math.round(
-        subjectPassRates.reduce((s, sp) => s + sp.passRate, 0) / subjectPassRates.length
-      );
-      for (let i = 0; i < points; i++) {
-        const variation = Math.sin(i * 0.8) * 8 + (Math.random() - 0.5) * 4;
-        const value = Math.max(30, Math.min(100, Math.round(basePassRate + variation)));
-        const change = i > 0 ? value - data[i - 1].value : 0;
-        const date = getDateLabel(i, points, period);
-        data.push({ date, value, change });
-      }
-    } else if (activeMetric === 'attendance' && classPerformances.length > 0) {
-      const baseAttendance = Math.round(
-        classPerformances.reduce((s, c) => s + c.attendanceRate, 0) / classPerformances.length
-      );
-      for (let i = 0; i < points; i++) {
-        const variation = Math.sin(i * 0.6) * 5 + (Math.random() - 0.5) * 3;
-        const value = Math.max(50, Math.min(100, Math.round(baseAttendance + variation)));
-        const change = i > 0 ? value - data[i - 1].value : 0;
-        const date = getDateLabel(i, points, period);
-        data.push({ date, value, change });
-      }
-    } else {
-      // Performance (average score)
-      const baseScore = Math.round(
-        classPerformances.reduce((s, c) => s + c.averageScore, 0) / (classPerformances.length || 1)
-      );
-      for (let i = 0; i < points; i++) {
-        const variation = Math.sin(i * 0.7) * 6 + (Math.random() - 0.5) * 3;
-        const value = Math.max(20, Math.min(100, Math.round((baseScore || 65) + variation)));
-        const change = i > 0 ? value - data[i - 1].value : 0;
-        const date = getDateLabel(i, points, period);
-        data.push({ date, value, change });
-      }
+  const stats = useMemo(() => {
+    if (points.length === 0) {
+      return { current: null, change: null, highest: null, lowest: null };
     }
+    const current = points[points.length - 1].value;
+    const previous = points.length > 1 ? points[points.length - 2].value : null;
+    return {
+      current,
+      change: previous === null ? null : Math.round((current - previous) * 10) / 10,
+      highest: Math.max(...points.map((point) => point.value)),
+      lowest: Math.min(...points.map((point) => point.value)),
+    };
+  }, [points]);
 
-    return data;
-  }, [period, activeMetric, subjectPassRates, classPerformances]);
+  const direction = directionOf(stats.change);
 
-  function getDateLabel(index: number, total: number, periodOption: PeriodOption): string {
-    const now = new Date();
-    let date: Date;
-
-    if (periodOption === 'week') {
-      date = new Date(now);
-      date.setDate(date.getDate() - (total - 1 - index) * 1);
-      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    } else if (periodOption === 'month') {
-      date = new Date(now);
-      date.setDate(date.getDate() - (total - 1 - index) * 7);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } else if (periodOption === 'term') {
-      date = new Date(now);
-      date.setMonth(date.getMonth() - (total - 1 - index));
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    } else {
-      date = new Date(now);
-      date.setFullYear(date.getFullYear() - (total - 1 - index));
-      return date.getFullYear().toString();
-    }
-  }
-
-  // Compute trend stats
-  const trendStats = useMemo(() => {
-    if (generateTrendData.length === 0) return { current: 0, previous: 0, change: 0, highest: 0, lowest: 0, trend: 'stable' };
-    const current = generateTrendData[generateTrendData.length - 1].value;
-    const previous = generateTrendData.length > 1 ? generateTrendData[generateTrendData.length - 2].value : current;
-    const change = current - previous;
-    const highest = Math.max(...generateTrendData.map((d) => d.value));
-    const lowest = Math.min(...generateTrendData.map((d) => d.value));
-    const trend = change > 2 ? 'up' : change < -2 ? 'down' : 'stable';
-    return { current, previous, change, highest, lowest, trend };
-  }, [generateTrendData]);
-
-  // Metrics
   const metrics: DashboardMetric[] = [
     {
       key: 'current',
-      label: `Current ${getMetricLabel(activeMetric)}`,
-      value: `${trendStats.current}%`,
-      icon: getMetricIcon(activeMetric),
+      label: `Current ${series.label}`,
+      value: stats.current === null ? 'Not recorded' : `${stats.current}%`,
+      icon: metricIcon(activeMetric),
     },
     {
       key: 'change',
-      label: 'Period Change',
-      value: `${trendStats.change >= 0 ? '+' : ''}${trendStats.change}%`,
-      description: trendStats.trend === 'up' ? 'Improving' : trendStats.trend === 'down' ? 'Declining' : 'Stable',
-      icon: trendStats.change >= 0 ? <ArrowUpIcon className="h-5 w-5 text-emerald-600" /> : <ArrowDownIcon className="h-5 w-5 text-rose-600" />,
+      label: 'Period change',
+      value: stats.change === null ? 'Not recorded' : `${stats.change >= 0 ? '+' : ''}${stats.change}%`,
+      description:
+        direction === null ? 'No earlier period recorded this metric' : direction === 'up' ? 'Improving' : direction === 'down' ? 'Declining' : 'Stable',
+      icon:
+        direction === 'down' ? (
+          <ArrowDownIcon className="h-5 w-5 text-rose-600" />
+        ) : (
+          <ArrowUpIcon className={`h-5 w-5 ${direction === 'up' ? 'text-emerald-600' : 'text-surface-muted-fg'}`} />
+        ),
     },
     {
       key: 'highest',
       label: 'Highest',
-      value: `${trendStats.highest}%`,
+      value: stats.highest === null ? 'Not recorded' : `${stats.highest}%`,
     },
     {
       key: 'lowest',
       label: 'Lowest',
-      value: `${trendStats.lowest}%`,
+      value: stats.lowest === null ? 'Not recorded' : `${stats.lowest}%`,
     },
   ];
 
-  function getMetricLabel(metric: TrendMetric): string {
-    if (metric === 'passRate') return 'Pass Rate';
-    if (metric === 'attendance') return 'Attendance';
-    return 'Performance';
-  }
-
-  function getMetricIcon(metric: TrendMetric): React.ReactNode {
-    if (metric === 'passRate') return <CheckCircleIcon className="h-6 w-6 text-emerald-700" />;
-    if (metric === 'attendance') return <UsersIcon className="h-6 w-6 text-primary-700" />;
-    return <AcademicCapIcon className="h-6 w-6 text-violet-700" />;
-  }
-
-  // Generate insights
   const insights = useMemo((): string[] => {
-    const observations: string[] = [];
-    const data = generateTrendData;
-    if (data.length < 2) return ['Insufficient data for trend analysis.'];
-
-    const trend = trendStats;
-    const metricLabel = getMetricLabel(activeMetric).toLowerCase();
-
-    if (trend.change > 3) {
-      observations.push(`${getMetricLabel(activeMetric)} has improved by ${trend.change}% compared to the previous period, showing positive academic momentum.`);
-    } else if (trend.change < -3) {
-      observations.push(`${getMetricLabel(activeMetric)} has declined by ${Math.abs(trend.change)}% compared to the previous period. Investigation and intervention may be needed.`);
-    } else {
-      observations.push(`${getMetricLabel(activeMetric)} has remained relatively stable with a ${trend.change >= 0 ? '+' : ''}${trend.change}% change.`);
+    if (points.length === 0) {
+      return [series.notRecordedReason ?? 'No period recorded this metric.'];
+    }
+    if (points.length < 2) {
+      return [`Only ${points[0].periodName} has recorded ${series.label.toLowerCase()}; there is no earlier point to compare.`];
     }
 
-    if (trend.highest - trend.lowest > 20) {
-      observations.push(`High variability detected: ${metricLabel} fluctuated ${trend.highest - trend.lowest}% between the highest and lowest periods.`);
+    const last = points[points.length - 1];
+    const previous = points[points.length - 2];
+    const change = Math.round((last.value - previous.value) * 10) / 10;
+    const observations = [
+      change === 0
+        ? `${series.label} is unchanged between ${previous.periodName} and ${last.periodName}.`
+        : `${series.label} moved ${change > 0 ? 'up' : 'down'} ${Math.abs(change)} points between ${previous.periodName} and ${last.periodName}.`,
+    ];
+
+    if (stats.highest !== null && stats.lowest !== null && stats.highest - stats.lowest > 20) {
+      observations.push(
+        `The range across recorded periods is ${Math.round((stats.highest - stats.lowest) * 10) / 10} points, from ${stats.lowest}% to ${stats.highest}%.`
+      );
     }
 
-    const recentTrend = data.slice(-3);
-    const isImproving = recentTrend[recentTrend.length - 1].value > recentTrend[0].value;
-    if (isImproving) {
-      observations.push(`Recent 3-period trend shows ${metricLabel} is on an upward trajectory.`);
-    } else {
-      observations.push(`Recent 3-period trend shows ${metricLabel} needs attention.`);
+    const recent = points.slice(-3);
+    if (recent.length === 3) {
+      const recentChange = Math.round((recent[2].value - recent[0].value) * 10) / 10;
+      observations.push(
+        `Across the last three recorded periods (${recent[0].periodName} to ${recent[2].periodName}) the metric ${recentChange > 0 ? 'rose' : recentChange < 0 ? 'fell' : 'held'}${recentChange === 0 ? '' : ` by ${Math.abs(recentChange)} points`}.`
+      );
     }
 
     return observations;
-  }, [generateTrendData, activeMetric, trendStats]);
+  }, [points, series.label, series.notRecordedReason, stats.highest, stats.lowest]);
 
-  // Line chart placeholder
-  const LineChartPlaceholder: React.FC<{ data: TrendDataPoint[] }> = ({ data }) => {
-    if (data.length === 0) return null;
-    const maxValue = Math.max(...data.map((d) => d.value));
-    const minValue = Math.min(...data.map((d) => d.value));
-    const range = maxValue - minValue || 1;
-    const chartHeight = 200;
-    const chartWidth = 100; // percentage
-
-    const getPointY = (value: number) => {
-      return chartHeight - ((value - minValue) / range) * (chartHeight - 20) - 10;
-    };
-
-    const getPointX = (index: number) => {
-      return (index / (data.length - 1)) * chartWidth;
-    };
-
-    // Build SVG path
-    const pathPoints = data.map((d, i) => `${getPointX(i)},${getPointY(d.value)}`).join(' ');
-
-    // Build area path
-    const areaPath = `0,${chartHeight} ${pathPoints} ${chartWidth},${chartHeight}`;
-
-    return (
-      <div className="relative w-full">
-        <svg
-          viewBox={`0 0 100 ${chartHeight}`}
-          preserveAspectRatio="none"
-          className="w-full"
-          style={{ height: `${chartHeight}px` }}
-        >
-          {/* Grid lines */}
-          {[0, 25, 50, 75, 100].map((pct) => {
-            const y = chartHeight - (pct / 100) * chartHeight;
-            return (
-              <g key={pct}>
-                <line x1="0" y1={y} x2="100" y2={y} stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2,2" />
-                <text x="-1" y={y + 2} textAnchor="end" fontSize="4" fill="#9ca3af">{Math.round(minValue + (pct / 100) * range)}%</text>
-              </g>
-            );
-          })}
-
-          {/* Area fill */}
-          <polygon
-            points={areaPath}
-            fill="url(#gradient)"
-            opacity="0.3"
-          />
-
-          {/* Gradient definition */}
-          <defs>
-            <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" />
-              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
-          {/* Line */}
-          <polyline
-            points={pathPoints}
-            fill="none"
-            stroke="#6366f1"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Data points */}
-          {data.map((d, i) => (
-            <g key={i}>
-              <circle
-                cx={getPointX(i)}
-                cy={getPointY(d.value)}
-                r="2"
-                fill="#6366f1"
-                stroke="white"
-                strokeWidth="0.5"
-              />
-              {/* Date labels on x-axis */}
-              {data.length <= 8 && (
-                <text
-                  x={getPointX(i)}
-                  y={chartHeight - 2}
-                  textAnchor="middle"
-                  fontSize="3"
-                  fill="#6b7280"
-                  transform={`rotate(-30, ${getPointX(i)}, ${chartHeight - 2})`}
-                >
-                  {d.date.length > 10 ? d.date.substring(0, 10) : d.date}
-                </text>
-              )}
-            </g>
-          ))}
-        </svg>
-      </div>
-    );
-  };
-
-  // Data table columns
-  const tableColumns: DataGridColumn<TrendDataPoint>[] = [
-    {
-      key: 'date',
-      header: 'Date',
-      sortable: true,
-    },
+  const tableColumns: DataGridColumn<TrendPoint>[] = [
+    { key: 'periodName', header: 'Period', sortable: true },
     {
       key: 'value',
-      header: getMetricLabel(activeMetric),
+      header: series.label,
       sortable: true,
       align: 'center',
-      render: (value: number) => (
-        <span className="font-semibold text-surface-foreground">{value}%</span>
-      ),
+      render: (value: number) => <span className="font-semibold text-surface-foreground">{value}%</span>,
     },
     {
       key: 'change',
       header: 'Change',
       sortable: true,
       align: 'center',
-      render: (value: number) => (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-          value > 0 ? 'bg-emerald-100 text-emerald-700' :
-          value < 0 ? 'bg-rose-100 text-rose-700' :
-          'bg-surface-accent text-surface-muted-fg'
-        }`}>
-          {value > 0 ? <ArrowUpIcon className="h-3 w-3" /> : value < 0 ? <ArrowDownIcon className="h-3 w-3" /> : null}
-          {value >= 0 ? '+' : ''}{value}%
-        </span>
-      ),
+      render: (value: number | null) =>
+        value === null ? (
+          <span className="text-xs text-surface-muted-fg">—</span>
+        ) : (
+          <span
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+              value > 0 ? 'bg-emerald-100 text-emerald-700' : value < 0 ? 'bg-rose-100 text-rose-700' : 'bg-surface-accent text-surface-muted-fg'
+            }`}
+          >
+            {value > 0 ? <ArrowUpIcon className="h-3 w-3" /> : value < 0 ? <ArrowDownIcon className="h-3 w-3" /> : null}
+            {value >= 0 ? '+' : ''}
+            {value}%
+          </span>
+        ),
     },
   ];
 
@@ -330,140 +246,97 @@ const AnalyticsTrendsPage: React.FC = () => {
   return (
     <ModuleDashboardShell
       title="Trends Over Time"
-      subtitle="Analyze academic performance trends, track improvements, and identify patterns across different time periods."
+      subtitle="Recorded performance, pass rate and attendance by period for the chosen academic year."
       heroIcon={<ChartBarIcon className="h-8 w-8 text-white" />}
       metrics={metrics}
     >
-      {/* Period Selector */}
-      <Card className="border-slate-200 bg-surface-card shadow-sm">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-surface-foreground">Period:</span>
-            {(['week', 'month', 'term', 'year'] as PeriodOption[]).map((p) => (
-              <Button
-                key={p}
-                variant={period === p ? 'primary' : 'outline'}
-                onClick={() => setPeriod(p)}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </Button>
-            ))}
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm font-medium text-surface-foreground">Metric:</span>
+      <AnalyticsScopeCard scope={scopeState} period="optional">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-surface-foreground">Metric:</span>
+          {METRICS.map((metric) => (
             <Button
-              variant={activeMetric === 'passRate' ? 'primary' : 'outline'}
-              onClick={() => setActiveMetric('passRate')}
-              leftIcon={<CheckCircleIcon className="h-4 w-4" />}
+              key={metric.id}
+              variant={activeMetric === metric.id ? 'primary' : 'outline'}
+              onClick={() => setActiveMetric(metric.id)}
             >
-              Pass Rate
+              {metric.label}
             </Button>
-            <Button
-              variant={activeMetric === 'attendance' ? 'primary' : 'outline'}
-              onClick={() => setActiveMetric('attendance')}
-              leftIcon={<UsersIcon className="h-4 w-4" />}
-            >
-              Attendance
-            </Button>
-            <Button
-              variant={activeMetric === 'performance' ? 'primary' : 'outline'}
-              onClick={() => setActiveMetric('performance')}
-              leftIcon={<AcademicCapIcon className="h-4 w-4" />}
-            >
-              Performance
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Trend Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="text-center">
-            <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">Pass Rate Trend</p>
-            <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-2xl font-bold text-surface-foreground">
-                {activeMetric === 'passRate' ? `${trendStats.current}%` :
-                  classPerformances.length > 0 ? `${Math.round(classPerformances.reduce((s, c) => s + c.passRate, 0) / classPerformances)}%` : '--'}
-              </span>
-              {trendStats.trend === 'up' && <ArrowUpIcon className="h-5 w-5 text-emerald-600" />}
-              {trendStats.trend === 'down' && <ArrowDownIcon className="h-5 w-5 text-rose-600" />}
-            </div>
-            <p className={`text-xs mt-1 ${trendStats.trend === 'up' ? 'text-emerald-600' : trendStats.trend === 'down' ? 'text-rose-600' : 'text-surface-muted-fg'}`}>
-              {trendStats.trend === 'up' ? 'Improving' : trendStats.trend === 'down' ? 'Declining' : 'Stable'}
-            </p>
-          </div>
-        </Card>
-
-        <Card className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="text-center">
-            <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">Attendance Trend</p>
-            <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-2xl font-bold text-surface-foreground">
-                {activeMetric === 'attendance' ? `${trendStats.current}%` :
-                  classPerformances.length > 0 ? `${Math.round(classPerformances.reduce((s, c) => s + c.attendanceRate, 0) / classPerformances)}%` : '--'}
-              </span>
-              <span className="text-xs text-surface-muted-fg">avg</span>
-            </div>
-            <p className="text-xs mt-1 text-primary-600">Across all classes</p>
-          </div>
-        </Card>
-
-        <Card className="border-slate-200 bg-surface-card shadow-sm">
-          <div className="text-center">
-            <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">Performance Trend</p>
-            <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-2xl font-bold text-surface-foreground">
-                {activeMetric === 'performance' ? `${trendStats.current}%` :
-                  classPerformances.length > 0 ? `${Math.round(classPerformances.reduce((s, c) => s + c.averageScore, 0) / classPerformances)}%` : '--'}
-              </span>
-              <span className="text-xs text-surface-muted-fg">avg</span>
-            </div>
-            <p className="text-xs mt-1 text-violet-600">Average score trend</p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Trend Line Chart */}
-      <Card
-        title={`${getMetricLabel(activeMetric)} Trend - ${period.charAt(0).toUpperCase() + period.slice(1)}`}
-        className="border-slate-200 bg-surface-card shadow-sm"
-      >
-        <LineChartPlaceholder data={generateTrendData} />
-      </Card>
-
-      {/* Trend Data Table */}
-      <Card title="Trend Data" className="border-slate-200 bg-surface-card shadow-sm">
-        <DataGrid
-          columns={tableColumns}
-          data={generateTrendData}
-          loading={loading}
-          sortable
-          filterable={false}
-          keyField="date"
-        />
-      </Card>
-
-      {/* Auto-Generated Insights */}
-      <Card
-        title="Insights"
-        icon={<ChartPieIcon className="h-5 w-5 text-primary-600" />}
-        className="border-slate-200 bg-surface-card shadow-sm"
-      >
-        <div className="space-y-3">
-          {insights.map((insight, idx) => (
-            <div
-              key={idx}
-              className="flex items-start gap-3 p-3 rounded-lg bg-primary-50 border border-primary-100"
-            >
-              <div className="h-6 w-6 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xs font-bold">{idx + 1}</span>
-              </div>
-              <p className="text-sm text-surface-foreground">{insight}</p>
-            </div>
           ))}
         </div>
-      </Card>
+      </AnalyticsScopeCard>
+
+      {error !== null && <AnalyticsEmptyCard title="Trends" message="The academic record could not be read, so no trend is shown." />}
+
+      {error === null && !hasYear && (
+        <AnalyticsEmptyCard
+          title="Trends"
+          message="No academic year is set up, so there is no period to plot."
+        />
+      )}
+
+      {error === null && hasYear && points.length === 0 && (
+        <AnalyticsEmptyCard title={`${series.label} trend`} message={series.notRecordedReason ?? 'No period recorded this metric.'} />
+      )}
+
+      {error === null && hasYear && points.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(['performance', 'attendance', 'passRate'] as TrendMetric[]).map((metric) => {
+              const candidate = analytics.trends[metric];
+              const last = candidate.points[candidate.points.length - 1];
+              return (
+                <Card key={metric} className="border-slate-200 bg-surface-card shadow-sm">
+                  <div className="text-center">
+                    <p className="text-xs font-medium text-surface-muted-fg uppercase tracking-wide">{candidate.label} trend</p>
+                    <div className="mt-2 flex items-center justify-center gap-2">
+                      <span className="text-2xl font-bold text-surface-foreground">
+                        {last === undefined ? 'Not recorded' : `${last.value}%`}
+                      </span>
+                    </div>
+                    <p className="text-xs mt-1 text-surface-muted-fg">
+                      {last === undefined
+                        ? (candidate.notRecordedReason ?? 'No period recorded this metric.')
+                        : `Latest recorded: ${last.periodName}`}
+                    </p>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          <Card title={`${series.label} trend`} className="border-slate-200 bg-surface-card shadow-sm">
+            <LineChart data={points} />
+          </Card>
+
+          <Card title="Trend data" className="border-slate-200 bg-surface-card shadow-sm">
+            <DataGrid
+              columns={tableColumns}
+              data={points}
+              loading={loading}
+              sortable
+              filterable={false}
+              keyField="periodId"
+            />
+          </Card>
+
+          <Card
+            title="Observations"
+            icon={<ChartPieIcon className="h-5 w-5 text-primary-600" />}
+            className="border-slate-200 bg-surface-card shadow-sm"
+          >
+            <div className="space-y-3">
+              {insights.map((insight, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-primary-50 border border-primary-100">
+                  <div className="h-6 w-6 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-xs font-bold">{index + 1}</span>
+                  </div>
+                  <p className="text-sm text-surface-foreground">{insight}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </>
+      )}
     </ModuleDashboardShell>
   );
 };

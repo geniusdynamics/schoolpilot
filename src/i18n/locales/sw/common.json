@@ -234,6 +234,15 @@
     "month": "Mwezi",
     "year": "Mwaka"
   },
+  "scope": {
+    "year": "Mwaka",
+    "class": "Darasa",
+    "stream": "Mkondo",
+    "period": "Muhula",
+    "allClasses": "Madarasa yote",
+    "allStreams": "Mikondo yote",
+    "allPeriods": "Mihula yote"
+  },
   "appName": "SchoolPilot",
   "loading": "Inapakia",
   "save": "Hifadhi",

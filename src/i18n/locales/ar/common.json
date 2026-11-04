@@ -234,6 +234,15 @@
     "month": "الشهر",
     "year": "السنة"
   },
+  "scope": {
+    "year": "السنة",
+    "class": "الصف",
+    "stream": "الشعبة",
+    "period": "الفترة",
+    "allClasses": "كل الصفوف",
+    "allStreams": "كل الشعب",
+    "allPeriods": "كل الفترات"
+  },
   "appName": "SchoolPilot",
   "loading": "جارٍ التحميل",
   "save": "حفظ",

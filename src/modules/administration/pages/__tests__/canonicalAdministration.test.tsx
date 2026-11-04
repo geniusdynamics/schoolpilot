@@ -217,7 +217,10 @@ describe('StudentsListContent (P1-E01)', () => {
     fireEvent.click(within(dialog).getByRole('tab', { name: /Academic Details/i }));
     const picker = within(dialog).getByRole('combobox', { name: /Class Group/i });
     fireEvent.click(picker);
-    fireEvent.click(await within(dialog).findByRole('option', { name: /Grade 7/ }));
+    // The open list is portalled to document.body; scope to its listbox so a same-named option in
+    // another control of the dialog cannot collide.
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByRole('option', { name: /Grade 7/ }));
 
     fireEvent.click(within(dialog).getByRole('button', { name: /Add Student/i }));
 

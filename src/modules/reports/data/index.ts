@@ -2,7 +2,10 @@
 // ABOUTME: Provides consistent data access patterns for reports
 
 // Export data hooks
-export { useAnalyticsData } from './useAnalyticsData';
+export { useAnalyticsData, type UseAnalyticsDataReturn } from './useAnalyticsData';
+
+// Export the analytics row shapes
+export * from './analyticsTypes';
 
 // Export types
 export * from './types';

@@ -2,6 +2,7 @@
 // ABOUTME: with month and year selectors, min/max limits, range selection and keyboard navigation.
 
 import React, { useState, useRef, useEffect, useCallback, useMemo, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -11,6 +12,7 @@ import {
 } from '@/utils/accessibility';
 import { calendarForLocale, getCalendar, type CalendarId, type CalendarSystem } from '@/domain/calendar';
 import { dateEntryPattern, startOfLocaleWeek, weekdayLabels } from '@/utils/locale';
+import { useAnchoredPopup } from '../popper';
 
 export interface DatePickerProps {
   value?: Date | null;
@@ -550,11 +552,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
   ].filter(Boolean).flat().join(' ');
 
   const calendarClasses = [
-    'absolute z-50 mt-2 bg-surface-card rounded-lg shadow-lg border border-surface-border',
+    'bg-surface-card rounded-lg shadow-lg border border-surface-border',
     'min-w-80 p-4',
     calendarState.isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
     'transition-all duration-200 ease-in-out',
   ].filter(Boolean).join(' ');
+  // The calendar is portalled and pinned to the input: cards, grids and dialogs can no longer clip it.
+  const calendarAnchor = useAnchoredPopup(calendarState.isOpen, inputRef, calendarRef, {
+    matchWidth: false,
+    minWidth: 320,
+  });
 
   const selectClasses =
     'rounded-md border border-surface-border bg-surface-card px-2 py-1 text-sm text-surface-foreground focus:outline-none focus:ring-2 focus:ring-primary-500';
@@ -621,15 +628,17 @@ const DatePicker: React.FC<DatePickerProps> = ({
         </p>
       )}
 
-      {/* Calendar Dropdown */}
-      {calendarState.isOpen && (
-        <div
-          ref={calendarRef}
-          className={calendarClasses}
-          role="dialog"
-          aria-label="Calendar"
-          onKeyDown={handleKeyDown}
-        >
+      {/* Calendar Dropdown — portalled to document.body and pinned to the input */}
+      {calendarState.isOpen && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+            ref={calendarRef}
+            className={calendarClasses}
+            style={calendarAnchor.style}
+            role="dialog"
+            aria-label="Calendar"
+            onKeyDown={handleKeyDown}
+          >
           {/* Calendar Header */}
           <div className="flex items-center justify-between gap-2 mb-4">
             <button
@@ -745,8 +754,10 @@ const DatePicker: React.FC<DatePickerProps> = ({
               }
             </div>
           )}
-        </div>
-      )}
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 };
