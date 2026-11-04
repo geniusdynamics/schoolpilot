@@ -1,5 +1,16 @@
 # Module Dependency Management System
 
+> **Status (2026-11-04):** most of what this page describes is not on the app's runtime path yet:
+> - `module.json` files are never loaded, and they disagree with `moduleDefinition.tsx` in 11 of 12 modules.
+> - Nothing reachable disables a module.
+>
+> [DR-06](../prd/workflow-log/decisions/DR-06.md) wires it:
+> - `module.json`, loaded by `ModuleMetadataLoader`, becomes each module's one manifest (P7-B02).
+> - Declared dependencies are checked against the imports in CI (P7-A02).
+> - Module enable/disable is wired after the cross-module edges are fixed (P7-B07).
+>
+> See [`docs/audit/2026-11-modularity`](../audit/2026-11-modularity/README.md) §4.4 and §4.5.
+
 ## Overview
 
 The SchoolPilot system now includes a comprehensive module dependency management system that allows modules to declare their dependencies on other modules, with version constraints and validation.

@@ -1,6 +1,7 @@
 # SchoolPilot — Product Requirements Document (PRD)
 
-**Version:** 1.0 · **Date:** 2026-10-07 · **Owner:** Genius Dynamics · **Status:** Approved for Phase 0
+**Version:** 1.1 · **Date:** 2026-11-04 (1.0: 2026-10-07) · **Owner:** Genius Dynamics · **Status:** Approved for Phase 0
+**1.1:** adds NFR-09 (modularity) and phase P7 (module boundaries), per [DR-06](workflow-log/decisions/DR-06.md).
 **Derived from:** [Multi-Curriculum Platform Specification](../specs/multi-curriculum-platform/README.md) and the [School Operations Audit](../audit/2026-10-school-operations/README.md)
 
 | Companion documents | Purpose |
@@ -96,6 +97,7 @@ section with full detail.
 | NFR-06 | Low-spec | Usable on 4 GB laptop and 2–3 GB Android |
 | NFR-07 | Encoding/i18n | UTF-8 only; no hard-coded curriculum terms in core |
 | NFR-08 | Test strategy | No mocks of storage in integration tests; golden paths on real build (08 §2) |
+| NFR-09 | Modularity ([DR-06](workflow-log/decisions/DR-06.md)) | A module owns its bounded context over a shared kernel. Modules meet only through `public.ts`; shared code names no module except the composition root; one schema-validated `module.json` per module, checked against the imports; deleting a module folder leaves a passing type-check; boundary counts (M1–M3) only fall in CI |
 
 ## 5. Release plan (phases)
 
@@ -108,16 +110,19 @@ section with full detail.
 | **P4** | Multi-user, sync & security | Hub server, sync, server-side auth/RBAC, backups, health page | P1 | P2, P3 | [P4](./phases/P4-sync-and-security.md) |
 | **P5** | Packs & localisation | Africa packs with vectors, locales incl. RTL, calendars, country packs, payroll interface | P2 (engine), P1 | P4, P6 | [P5](./phases/P5-packs-and-localisation.md) |
 | **P6** | Ecosystem & open-source 1.0 | Plug-in SDK, exports, connectors, portal, governance, pilot sign-off, 1.0 release | P2–P4 | P5 | [P6](./phases/P6-ecosystem-and-release.md) |
+| **P7** | Module boundaries | Layout B ([DR-06](workflow-log/decisions/DR-06.md)): modules own their contexts over a shared kernel; one manifest, one composition root, `public.ts` surfaces; CI ratchets M1–M3 and initial JS | P1–P3 | P6 W3–W4 (pilot, release) | [P7](./phases/P7-module-boundaries.md) |
 
 ```
 P0 ──▶ P1 ──┬──▶ P2 ──┬──▶ P5 ──┐
             ├──▶ P3 ──┤         ├──▶ P6 (1.0)
             └──▶ P4 ──┴─────────┘
+       P1–P3 ──▶ P7 (module boundaries; alongside P6's pilot term)
 ```
 
 Indicative calendar with the lane model in EXECUTION.md (agents + 1–2 human reviewers):
 P0 ≈ 2–3 weeks · P1 ≈ 4–5 weeks · P2/P3/P4 in parallel ≈ 6–8 weeks · P5 ≈ 4–6 weeks (rolling,
-community-heavy) · P6 ≈ 4 weeks + one full pilot term before 1.0.
+community-heavy) · P6 ≈ 4 weeks + one full pilot term before 1.0 · P7 ≈ 5–7 weeks (seven waves, mostly
+sequential).
 
 ## 6. Definition of done
 
@@ -138,6 +143,7 @@ met; phase completion log written (`workflow-log/`); `PROGRESS.md` updated; base
 | Sync engine choice wrong | Rework in P4 | Decision record DR-02 with spike before commitment |
 | Mid-term upgrades disrupt schools | Operational harm | Release channels; schema changes only in holidays (08 §6) |
 | Scope creep from 11 modules | Delay | Out-of-scope modules only receive P0 contract fixes until 1.0 |
+| Moving contexts into modules (P7 lane F) breaks imports or changes the schema | Regressions; a data migration mid-term | Only after the composition root and the ratchet exist; one context per task; canonical DDL dump identical before and after, so no data migration |
 
 ## 8. Open decisions (tracked as tasks)
 
@@ -148,3 +154,5 @@ met; phase completion log written (`workflow-log/`); `PROGRESS.md` updated; base
 | DR-03 | Licence — decided: Apache-2.0 for the code, CC-BY-4.0 for pack data ([DR-03](workflow-log/decisions/DR-03.md)) | P6 W1 | P6-E01 |
 | DR-04 | Query cache (TanStack Query vs custom store) | P1 W1 | P1-B01 |
 | DR-05 | PDF rendering (browser print-to-PDF vs library in worker) | P2 W1 | P2-D01 |
+| DR-06 | Modularity after the canonical domain model: decided, layout B, one manifest, `public.ts`, NFR-02 ratchet ([DR-06](workflow-log/decisions/DR-06.md)) | P7 W1 | P7-A01 |
+| DR-07 | Finance stores write through `SqliteAdapter`, not repositories: record the reason or migrate | P7 W2 | P7-E04 |

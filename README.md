@@ -115,11 +115,11 @@ The [`AppDataContext`](src/contexts/AppDataContext.tsx) acts as a sophisticated 
 ### Reactive Data Architecture
 - **Observable Streams**: Real-time UI updates via RxDB subscriptions and reactive patterns
 - **40+ Collections**: Comprehensive database schema across all business modules
-- **Schema Federation**: Each module contributes schemas to central database via [`src/services/rxdbService.ts`](src/services/rxdbService.ts)
+- **Schema Registry**: One canonical entity registry. Shared entities live in [`src/domain/schema`](src/domain/schema); under [DR-06](docs/prd/workflow-log/decisions/DR-06.md), modules contribute their own entity schemas to it (phase P7)
 - **Conflict Resolution**: Built-in data consistency mechanisms and referential integrity
 
 ### Modular Design
-- **Domain-Driven**: Each business module is self-contained with its own types, schemas, and data
+- **Domain-Driven** (target, [DR-06](docs/prd/workflow-log/decisions/DR-06.md)): each business module owns its bounded context (screens, domain code, entity schemas, migrations) over a shared kernel in `src/domain`, and other modules reach it only through its `public.ts`. Phase [P7](docs/prd/phases/P7-module-boundaries.md) is moving the code there; see the [modularity audit](docs/audit/2026-11-modularity/README.md) for where it stands
 - **Type-Safe**: Comprehensive TypeScript coverage with strict configuration
 - **Scalable**: Easy to add new modules following established patterns
 - **Maintainable**: Clear separation of concerns with consistent module structure

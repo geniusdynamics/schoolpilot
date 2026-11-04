@@ -228,6 +228,44 @@
       "status": "not_started",
       "start_after": "P2-W5",
       "completed_at": null
+    },
+    {
+      "id": "P7",
+      "name": "Module boundaries",
+      "depends_on": [
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "lanes": {
+        "A": "Measurement & guardrails",
+        "B": "Manifest & composition root",
+        "C": "Startup path & bundle",
+        "D": "Cross-module edges",
+        "E": "Kernel, data & test hygiene",
+        "F": "Context moves (layout B)",
+        "Z": "Phase integration"
+      },
+      "waves": {
+        "P7-W1": "Measure in CI; delete the machinery DR-06 drops; mock data off startup; one money; legacy guardian",
+        "P7-W2": "Ratchet; module.json as the single manifest; chunking; shared test doubles; domain reaches data through ports",
+        "P7-W3": "public.ts contract; composition root and lifecycle",
+        "P7-W4": "Providers and collections contributed; analytics and finance consumers through public.ts; composed entity registry",
+        "P7-W5": "Setup, settings and report contributions; home of assessment and curriculum",
+        "P7-W6": "Finance context into modules/finance; module enable/disable; startup without module code",
+        "P7-W7": "NFR-02 gate; module-removal check; phase integration"
+      },
+      "exit_criteria": [
+        "scripts/modularity report on the exit commit: M1 = 0 (modules meet only through public.ts), M2 = 0 outside the composition root and router, M3 = 0 outside the persistence ports",
+        "Every module has one module.json that validates against src/schemas/module-schema.json, and its declared dependencies cover every cross-module import (CI check)",
+        "Removing any single module folder leaves a passing type-check (module-removal check, every module)",
+        "No module page, mock data or definition on the static startup graph; initial JS reported in CI and not above its ratchet; NFR-02 hard gate on once initial JS <= 500 KB",
+        "No test imports another module's internals or __tests__ folder; generic doubles live in shared test support",
+        "node scripts/prd/gate.mjs phase --probe -> GATE PASSED; baseline tightened; phase-complete log written"
+      ],
+      "status": "not_started",
+      "start_after": null,
+      "completed_at": null
     }
   ],
   "tasks": [
@@ -4998,6 +5036,859 @@
       "commit": "89be58b",
       "notes": "Opened mid-wave: four advisories published after the baseline blocked every gate. | gate PASS incl. G8 (77 known, 25 stale dropped); MCP dev tooling removed, undici pinned to 7.x with three advisories recorded as accepted risk",
       "completed_at": "2026-10-28"
+    },
+    {
+      "id": "P7-A01",
+      "phase": "P7",
+      "wave": "P7-W1",
+      "lane": "A",
+      "title": "Measure module boundaries in CI: promote the audit scripts to scripts/modularity/ and report M1-M3, startup paths and initial JS on every pull request",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "scripts/modularity/* (new)",
+        ".github/workflows/ci.yml",
+        "package.json"
+      ],
+      "acceptance": [
+        "The CI job summary of a consolidation pull request shows M1, M2, M3, the static startup paths into modules and initial JS (KB gzip)",
+        "Run on 547cdcd, the report reproduces the audit (M1 34, M2 61 live, M3 11, initial JS 2,672 KB)",
+        "Report only: the step cannot fail the build in this task",
+        "ESLint clean on the new scripts (gate G7)"
+      ],
+      "test": "node --test on a fixture source tree: a cross-module import, an eager glob and a type-only import are each counted as specified",
+      "reqs": [
+        "NFR-09",
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#8-method",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B01",
+      "phase": "P7",
+      "wave": "P7-W1",
+      "lane": "B",
+      "title": "Delete the module machinery DR-06 drops (ServiceRegistry, useService, registerServices, dynamicModuleLoader, ModuleBundler, useLazyModule, ModularSystem, loading-progress hooks, moduleOrder, moduleCollectionRegistry, hooks/data, pageComponentResolver, portal examples, core/index) and finance's barrel self-import",
+      "size": "M",
+      "depends_on": [],
+      "files": [
+        "src/core/ServiceRegistry.ts",
+        "src/hooks/useService.ts",
+        "src/modules/*/services/registerServices.ts",
+        "src/services/module/dynamicModuleLoader.ts",
+        "src/core/ModuleBundler.ts",
+        "src/hooks/useLazyModule.ts",
+        "src/core/ModularSystem.ts",
+        "src/hooks/useModuleLoadingPerformance.ts",
+        "src/components/ModuleLoadingProgress.tsx",
+        "src/moduleOrder.ts",
+        "src/contexts/appData/moduleCollectionRegistry.ts",
+        "src/hooks/data/*",
+        "src/services/ui/pageComponentResolver.ts",
+        "src/components/DynamicPageComponent.tsx",
+        "src/services/ui/routePreloader.ts",
+        "src/modules/portal/examples/*",
+        "src/core/index.ts",
+        "src/services/index.ts",
+        "src/services/module/index.ts",
+        "src/services/ui/index.ts",
+        "src/components/index.ts",
+        "src/modules/academics/lifecycle.ts",
+        "src/modules/administration/lifecycle.ts",
+        "src/modules/finance/lifecycle.ts",
+        "src/modules/finance/pages/SupplierInvoicesPage.tsx"
+      ],
+      "acceptance": [
+        "Every file on the DR-06 delete list is gone, with its tests; DynamicPageComponent and routePreloader only if the report still shows them unreachable",
+        "The report shows no unreachable module-system file except those DR-06 wires (ModuleMetadataLoader, ModuleExports, module.json, lifecycle, useModule, moduleManagementService, moduleConfigService)",
+        "The 4-file cycle through modules/finance/index.ts is gone (report: cycles)",
+        "Full-suite failed files <= baseline; type ratchet not raised"
+      ],
+      "test": "Type-check plus a report assertion that no remaining file imports a deleted path",
+      "reqs": [
+        "NFR-09",
+        "G7"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#45-the-module-system-what-runs-and-what-does-not",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-C01",
+      "phase": "P7",
+      "wave": "P7-W1",
+      "lane": "C",
+      "title": "Take mock data off the startup path: lazy demo seeding (non-eager glob, dynamic imports from dataModeManager, AppDataContext and UnifiedDatabaseManager)",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/services/database/demoDataSeed.ts",
+        "src/services/data/dataModeManager.ts",
+        "src/contexts/AppDataContext.tsx",
+        "src/services/database/UnifiedDatabaseManager.ts"
+      ],
+      "acceptance": [
+        "Report: no mockData.ts file on the static startup graph",
+        "Report: the 7-file runtime cycle through academics mockData and UnifiedDatabaseManager is gone",
+        "src/domain/demo/__tests__/mockPathsRetired.test.ts passes unchanged",
+        "Demo mode still seeds the legacy collections (existing seeding test)"
+      ],
+      "test": "A test that loads dataModeManager and AppDataContext and asserts no module mockData module is loaded until seeding is requested",
+      "reqs": [
+        "NFR-02",
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#47-startup-bundle",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-E01",
+      "phase": "P7",
+      "wave": "P7-W1",
+      "lane": "E",
+      "title": "One money implementation: canonicalFinance and accountingReports delegate to src/domain/money instead of their own currencyDigits, money, zeroMoney, sumMoney and subtractMoney",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/modules/finance/data/canonicalFinance.ts",
+        "src/modules/finance/pages/accounting/accountingReports.ts"
+      ],
+      "acceptance": [
+        "grep: money arithmetic is defined only in src/domain/money (the frozen 005 migration excepted, if frozen)",
+        "canonicalFinance keeps its exported names as delegates until P7-D02 removes their cross-module callers",
+        "Finance page and accounting report tests pass unchanged"
+      ],
+      "test": "Equivalence test: each replaced helper and its domain/money counterpart agree for KES, a 3-decimal and a 0-decimal currency",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#48-duplicated-primitives",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-E02",
+      "phase": "P7",
+      "wave": "P7-W1",
+      "lane": "E",
+      "title": "Remove the legacy guardian write path in src/domain/students and keep only the two record types useLookups needs",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/domain/students/*",
+        "src/hooks/useLookups.ts"
+      ],
+      "acceptance": [
+        "No production code defines or imports saveStudentGuardian, resolvePrimaryGuardian or findPrimaryRelationship",
+        "GuardianRecord and GuardianRelationshipRecord live with their reader or the kernel",
+        "useLookups tests pass"
+      ],
+      "test": "Type-check and the useLookups tests; the deleted functions' tests go with them",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#31-to-the-first-pass-answer",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-A02",
+      "phase": "P7",
+      "wave": "P7-W2",
+      "lane": "A",
+      "title": "Ratchet the boundaries: CI fails when M1, M2 or M3 exceed scripts/modularity/baseline.json; ESLint mirrors M1 and M3, keeps modules/<x>/domain free of UI imports and counts useAppData (spec 06:52); remove the old cross-module script and workflow",
+      "size": "M",
+      "depends_on": [
+        "P7-A01",
+        "P7-B01",
+        "P7-C01"
+      ],
+      "files": [
+        "scripts/modularity/*",
+        "scripts/modularity/baseline.json (new)",
+        ".github/workflows/ci.yml",
+        "eslint.config.js",
+        "package.json",
+        "scripts/detect-cross-module-imports.ts",
+        ".github/workflows/module-validation.yml"
+      ],
+      "acceptance": [
+        "A pull request adding a module-to-module import outside public.ts fails CI, naming file:line",
+        "The baseline is captured after P7-W1 and only ever lowered",
+        "Touching a file with an existing violation does not fail gate G7; adding a new violation does fail CI",
+        "detect-cross-module-imports.ts, its npm scripts and module-validation.yml are gone"
+      ],
+      "test": "node --test: the report on a fixture tree with one extra cross-module import exits non-zero against the baseline",
+      "reqs": [
+        "NFR-09",
+        "G7"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#46-guardrails",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B02",
+      "phase": "P7",
+      "wave": "P7-W2",
+      "lane": "B",
+      "title": "Make module.json the single manifest: ModuleMetadataLoader feeds registration, moduleDefinition.tsx keeps only React-bound fields, add src/schemas/module-schema.json, reconcile the disagreeing manifests, settle todos and modules/core, drop the unused feature flags",
+      "size": "L",
+      "depends_on": [
+        "P7-B01"
+      ],
+      "files": [
+        "src/modules/*/module.json",
+        "src/modules/*/moduleDefinition.tsx",
+        "src/core/ModuleMetadataLoader.ts",
+        "src/core/moduleRegistration.ts",
+        "src/core/types/module.ts",
+        "src/core/types/common.ts",
+        "src/schemas/module-schema.json (new)",
+        "src/config/features.ts",
+        "src/vite-env.d.ts",
+        "src/modules/todos/*"
+      ],
+      "acceptance": [
+        "No field is declared in both module.json and moduleDefinition.tsx (manifest check)",
+        "Every module.json validates against src/schemas/module-schema.json (unit test)",
+        "Declared dependencies cover every module-to-module import (report check)",
+        "Boot registers every module without importing a moduleDefinition.tsx (registration test)",
+        "todos and modules/core are registered or deleted; the decision is in the task notes"
+      ],
+      "test": "Registration test with two fixture modules: metadata comes from module.json, definitions load lazily, an undeclared dependency is reported",
+      "reqs": [
+        "NFR-09",
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-C02",
+      "phase": "P7",
+      "wave": "P7-W2",
+      "lane": "C",
+      "title": "Let Rollup split on real import boundaries: drop the per-module and catch-all vendor manualChunks rules",
+      "size": "S",
+      "depends_on": [
+        "P7-C01"
+      ],
+      "files": [
+        "vite.config.ts"
+      ],
+      "acceptance": [
+        "vite.config.ts names no module chunk and no catch-all vendor chunk",
+        "Initial JS before and after, and route-chunk sizes, recorded in the task notes (initialjs script)",
+        "Production build and the e2e smoke pass"
+      ],
+      "test": "Build plus the initialjs script; assert no modulepreload chunk contains a module pages/ file (chunk module list)",
+      "reqs": [
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#47-startup-bundle",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-E03",
+      "phase": "P7",
+      "wave": "P7-W2",
+      "lane": "E",
+      "title": "End the interim test policy of DR-06: move the generic repository doubles into shared test support and point every test at them",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/test-support/* (new)",
+        "src/modules/hr/data/__tests__/canonicalRepositoryDouble.ts",
+        "src/modules/finance/data/__tests__/canonicalRepositoryDouble.ts",
+        "src/modules/academics/pages/__tests__/canonicalRepositoryDouble.ts"
+      ],
+      "acceptance": [
+        "Report: no test imports another module's __tests__ folder",
+        "Finance-only behaviour (posting freeze, allocation limit) stays with finance or becomes an option of the shared double",
+        "Full-suite failed files <= baseline"
+      ],
+      "test": "The moved doubles keep their own tests; importing page tests pass with only the import path changed",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-E04",
+      "phase": "P7",
+      "wave": "P7-W2",
+      "lane": "E",
+      "title": "Domain reaches data only through the persistence ports: resolve the 11 imports of data/auth and data/query, and record the finance stores' repository bypass as DR-07",
+      "size": "S",
+      "depends_on": [],
+      "files": [
+        "src/domain/finance/adjustments/definitions.ts",
+        "src/domain/finance/adjustments/types.ts",
+        "src/domain/finance/expenses/service.ts",
+        "src/domain/finance/ledger/engine.ts",
+        "src/domain/finance/transport/service.ts",
+        "src/domain/services/PromotionService.ts",
+        "src/domain/workflows/guard.ts",
+        "src/domain/workflows/protection.ts",
+        "src/domain/workflows/types.ts",
+        "src/data/auth/*",
+        "src/data/query/*",
+        "docs/prd/workflow-log/decisions/DR-07.md (new)"
+      ],
+      "acceptance": [
+        "Report: M3 = 0 outside data/repository and data/adapters/sqlite, or each remaining edge is allow-listed with DR-07's reason",
+        "DR-07 states why the finance stores bypass repositories and whether they emit change events (spec 06:44)",
+        "Domain tests pass unchanged"
+      ],
+      "test": "A ledger post through its store emits a change event a watch() subscriber receives, or the test pins the gap and DR-07 opens a task",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#41-what-srcdomain-is",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B03",
+      "phase": "P7",
+      "wave": "P7-W3",
+      "lane": "B",
+      "title": "Give every module a typed public.ts checked by ModuleExports against module.json provides; delete the unused index.ts barrels",
+      "size": "M",
+      "depends_on": [
+        "P7-B02"
+      ],
+      "files": [
+        "src/modules/*/public.ts (new)",
+        "src/modules/*/index.ts",
+        "src/core/ModuleExports.ts",
+        "src/modules/*/module.json"
+      ],
+      "acceptance": [
+        "Every module has public.ts exporting what other modules import today",
+        "Unit test: ModuleExports.validateAll() passes, and an export missing from provides fails it",
+        "No modules/*/index.ts barrel remains"
+      ],
+      "test": "ModuleExports test with a fixture module whose public.ts and provides disagree",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B04",
+      "phase": "P7",
+      "wave": "P7-W3",
+      "lane": "B",
+      "title": "Composition root: registration built from the manifests with lazy definitions, lifecycle hooks honoured, and a typed contribution API so a module needs no shared edits",
+      "size": "M",
+      "depends_on": [
+        "P7-B02"
+      ],
+      "files": [
+        "src/core/moduleRegistration.ts",
+        "src/core/ModuleLifecycle.ts",
+        "src/core/moduleRegistry.ts",
+        "src/core/types/common.ts",
+        "src/modules/*/lifecycle.ts",
+        "src/modules/*/moduleDefinition.tsx",
+        "src/routing/AppContent.tsx"
+      ],
+      "acceptance": [
+        "A fixture module folder (module.json + moduleDefinition.tsx) registers with no edit outside the folder (integration test)",
+        "A module's onRegister, onEnable and onDisable run; the default logger hooks are gone",
+        "ModuleDefinition types the contributions: providers, collections, pages, report entries, setup steps, settings tabs, entity schemas, migrations"
+      ],
+      "test": "Fixture-module integration test: register, enable and disable with lifecycle spies",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B05",
+      "phase": "P7",
+      "wave": "P7-W4",
+      "lane": "B",
+      "title": "Contributions part 1: data providers and collections come from module manifests, providers mount inside their module's routes, and contexts/data and services/database stop naming modules",
+      "size": "M",
+      "depends_on": [
+        "P7-B04"
+      ],
+      "files": [
+        "src/contexts/data/index.ts",
+        "src/contexts/AppDataContext.tsx",
+        "src/services/database/collections.ts",
+        "src/services/database/types.ts",
+        "src/modules/*/moduleDefinition.tsx",
+        "src/routing/moduleRoutes.tsx"
+      ],
+      "acceptance": [
+        "Report: contexts/data/index.ts, services/database/collections.ts and services/database/types.ts import no module",
+        "A module's data provider mounts only under its own routes (route test)",
+        "Pages that read legacy collections still render (crawl smoke test)"
+      ],
+      "test": "Route test: a finance route mounts FinanceDataProvider and an academics route does not",
+      "reqs": [
+        "NFR-09",
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-D01",
+      "phase": "P7",
+      "wave": "P7-W4",
+      "lane": "D",
+      "title": "Reports analytics go through academics' public surface: move the cohort, heatmap, ranking and distribution calculations out of academics pages",
+      "size": "M",
+      "depends_on": [
+        "P7-B03"
+      ],
+      "files": [
+        "src/modules/reports/pages/analytics/*",
+        "src/modules/academics/public.ts",
+        "src/modules/academics/pages/marks/*",
+        "src/modules/academics/pages/results/*",
+        "src/modules/academics/pages/observations/data/judgement.ts",
+        "src/domain/assessment/*"
+      ],
+      "acceptance": [
+        "Report: reports-to-academics edges only through modules/academics/public.ts",
+        "The moved calculations are pure and unit-tested without React; academics pages use them, no copy left",
+        "Analytics screen tests pass unchanged"
+      ],
+      "test": "Unit tests for the moved calculations, using the fixtures the analytics screens use",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#44-module-to-module-imports",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-D02",
+      "phase": "P7",
+      "wave": "P7-W4",
+      "lane": "D",
+      "title": "Finance's consumers go through finance's public surface (portal balances, the votehead statement, administration's financial pages), and administration stops importing admissions' internals",
+      "size": "M",
+      "depends_on": [
+        "P7-B03",
+        "P7-E01"
+      ],
+      "files": [
+        "src/modules/portal/pages/PortalDashboardPage.tsx",
+        "src/modules/portal/pages/PortalFeesPage.tsx",
+        "src/modules/portal/data/*",
+        "src/modules/reports/pages/StudentVoteheadStatementPage.tsx",
+        "src/modules/reports/utils/studentVoteheadStatement.ts",
+        "src/modules/administration/pages/SchoolPeriodsPage.tsx",
+        "src/modules/administration/pages/StudentFinancialDetailPage.tsx",
+        "src/modules/administration/data/mockData.ts",
+        "src/modules/finance/public.ts",
+        "src/modules/admissions/public.ts",
+        "src/modules/portal/module.json",
+        "src/modules/reports/module.json",
+        "src/modules/administration/module.json"
+      ],
+      "acceptance": [
+        "Report: portal-to-finance, reports-to-finance (outside the hub, see P7-B06) and administration-to-finance/admissions edges only through public.ts",
+        "module.json dependencies say optional only where the import is optional",
+        "Portal fee and dashboard tests and the votehead statement tests pass"
+      ],
+      "test": "Existing page tests plus a report assertion on the edge list",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#44-module-to-module-imports",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-F01",
+      "phase": "P7",
+      "wave": "P7-W4",
+      "lane": "F",
+      "title": "Composed entity registry: EntityName derived from kernel and module contributions; the schema-migration list, ledger-chart seeding and demo seeding move from src/data into the composition root (amends spec 06:56 and DR-01)",
+      "size": "L",
+      "depends_on": [
+        "P7-B04",
+        "P7-E04"
+      ],
+      "files": [
+        "src/domain/schema/index.ts",
+        "src/data/migrations/schemaMigrations.ts",
+        "src/data/canonicalRepository.tsx",
+        "src/data/demo/seedCanonicalDemo.ts",
+        "src/core/moduleRegistration.ts",
+        "docs/specs/multi-curriculum-platform/06-platform-architecture.md"
+      ],
+      "acceptance": [
+        "EntityName stays a closed union (type test: an unknown entity name does not compile)",
+        "The canonical DDL dump is identical before and after (migration schema test)",
+        "Report: src/data imports no domain context except the kernel",
+        "Spec 06 section 2.5 describes the composed registry"
+      ],
+      "test": "Schema round-trip and DDL-dump comparison tests, and a type test for the closed union",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B06",
+      "phase": "P7",
+      "wave": "P7-W5",
+      "lane": "B",
+      "title": "Contributions part 2: setup steps, settings tabs, report entries and shared types come from module manifests; the reports hub renders finance's reports by id",
+      "size": "M",
+      "depends_on": [
+        "P7-B05"
+      ],
+      "files": [
+        "src/components/setup/*",
+        "src/services/tabs/TabStateDeriver.ts",
+        "src/core/types/index.ts",
+        "src/utils/validationSchemas.ts",
+        "src/modules/*/moduleDefinition.tsx",
+        "src/routing/routeConfig.ts",
+        "src/modules/reports/pages/FinancialReportsHubPage.tsx"
+      ],
+      "acceptance": [
+        "Report: M2 = 0 outside the composition root and the router",
+        "FinancialReportsHubPage imports no finance file and renders the six finance reports (page test)",
+        "The setup wizard completes on a fresh school (existing wizard tests)"
+      ],
+      "test": "Hub page test with a fixture report contribution, plus the setup wizard tests",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#42-a-module-is-a-ui-slice",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-F03",
+      "phase": "P7",
+      "wave": "P7-W5",
+      "lane": "F",
+      "title": "Decide and apply the home of assessment and curriculum (academics' context or the kernel), place PromotionService, and record where payroll goes once hr uses it",
+      "size": "M",
+      "depends_on": [
+        "P7-F01",
+        "P7-D01"
+      ],
+      "files": [
+        "src/domain/assessment/*",
+        "src/domain/curriculum/*",
+        "src/domain/services/PromotionService.ts",
+        "src/modules/academics/domain/* (new)",
+        "src/modules/academics/public.ts",
+        "src/domain/README.md (new)"
+      ],
+      "acceptance": [
+        "src/domain/README.md lists every remaining src/domain folder as kernel, with its reason",
+        "Report: M1 and M3 do not grow; reports and administration reach assessment only through academics/public.ts or the kernel",
+        "Assessment, promotion and analytics tests pass unchanged"
+      ],
+      "test": "Existing assessment, promotion and analytics suites plus report assertions",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#43-where-srcdomain-is-used",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-F02",
+      "phase": "P7",
+      "wave": "P7-W6",
+      "lane": "F",
+      "title": "Move the finance context into modules/finance: domain code, entity schemas and migrations contributed through the manifest (refined into sub-tasks at wave start)",
+      "size": "L",
+      "depends_on": [
+        "P7-F01",
+        "P7-D02"
+      ],
+      "files": [
+        "src/domain/finance/*",
+        "src/modules/finance/*",
+        "src/domain/demo/*"
+      ],
+      "acceptance": [
+        "src/domain/finance is gone; finance domain code lives in src/modules/finance/domain with no UI imports (lint)",
+        "The canonical DDL dump is identical before and after",
+        "Finance, portal and billing tests pass, including the 1,000-learner billing run (NFR-02)",
+        "The hub server still runs finance services server-side (P4-B01 test)"
+      ],
+      "test": "Full finance suite, DDL-dump comparison and the test:perf billing run",
+      "reqs": [
+        "NFR-09",
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-C03",
+      "phase": "P7",
+      "wave": "P7-W6",
+      "lane": "C",
+      "title": "Startup carries no module code: confirm per-route providers, split the remaining vendor code and lazy-load the retired providers' dependencies",
+      "size": "M",
+      "depends_on": [
+        "P7-B05",
+        "P7-B06",
+        "P7-C02"
+      ],
+      "files": [
+        "vite.config.ts",
+        "src/contexts/AppProviders.tsx",
+        "src/services/data/index.ts"
+      ],
+      "acceptance": [
+        "initialjs: no module chunk or module page code in modulepreload; initial JS recorded against the ratchet",
+        "Report: no module file on the static startup graph",
+        "PWA precache and route-chunk sizes reported in CI"
+      ],
+      "test": "Build plus the initialjs and report assertions in CI",
+      "reqs": [
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "audit/2026-11-modularity/README.md#47-startup-bundle",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-B07",
+      "phase": "P7",
+      "wave": "P7-W6",
+      "lane": "B",
+      "title": "Wire module enable and disable (useModule, moduleManagementService, moduleConfigService) behind the settings Modules tab, refusing to disable a module that another enabled module requires",
+      "size": "M",
+      "depends_on": [
+        "P7-B06",
+        "P7-D01",
+        "P7-D02"
+      ],
+      "files": [
+        "src/hooks/useModule.ts",
+        "src/services/module/moduleManagementService.ts",
+        "src/services/module/moduleConfigService.ts",
+        "src/services/module/index.ts",
+        "src/modules/settings/components/ModulesTab.tsx"
+      ],
+      "acceptance": [
+        "Disabling a module in Settings hides its routes and navigation and runs its onDisable (integration test)",
+        "Disabling a module that an enabled module requires is refused, naming the dependants",
+        "A module with an optional dependency keeps working while that dependency is disabled"
+      ],
+      "test": "Integration test: disable inventory and its routes and navigation disappear; disabling finance while portal requires it is refused",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-A03",
+      "phase": "P7",
+      "wave": "P7-W7",
+      "lane": "A",
+      "title": "Enforce NFR-02: initial JS ratchet in CI, switching to a hard 500 KB gate once under it",
+      "size": "S",
+      "depends_on": [
+        "P7-C03"
+      ],
+      "files": [
+        "scripts/modularity/baseline.json",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance": [
+        "A build whose initial JS exceeds the baseline fails CI",
+        "Once initial JS <= 500 KB the check is the fixed 500 KB budget, recorded in the task notes"
+      ],
+      "test": "node --test on the budget check with a fixture index.html and chunks",
+      "reqs": [
+        "NFR-02"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-A04",
+      "phase": "P7",
+      "wave": "P7-W7",
+      "lane": "A",
+      "title": "Module-removal check: deleting any one module folder leaves a passing type-check (manual workflow and phase gate)",
+      "size": "S",
+      "depends_on": [
+        "P7-F02",
+        "P7-F03"
+      ],
+      "files": [
+        ".github/workflows/module-removal.yml (new)",
+        "scripts/modularity/removal-check.mjs (new)"
+      ],
+      "acceptance": [
+        "For every module, removing its folder in a scratch worktree type-checks clean (the run lists each module)",
+        "Runs on workflow_dispatch and in the phase-exit gate; no cron, because scheduled workflows do not fire on consolidation"
+      ],
+      "test": "The check on a fixture tree where one module imports another outside public.ts reports that module",
+      "reqs": [
+        "NFR-09"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
+    },
+    {
+      "id": "P7-Z01",
+      "phase": "P7",
+      "wave": "P7-W7",
+      "lane": "Z",
+      "title": "Phase integration: rewrite MODULE_STRUCTURE_STANDARD and ARCHITECTURE.md to the implemented structure, regenerate PROGRESS and the scorecard, tighten the gate baseline",
+      "size": "S",
+      "depends_on": [
+        "P7-A03",
+        "P7-A04"
+      ],
+      "files": [
+        "docs/architecture/MODULE_STRUCTURE_STANDARD.md",
+        "ARCHITECTURE.md",
+        "docs/architecture/module-dependency-system.md",
+        "docs/prd/workflow-log/*",
+        "docs/prd/SCORECARD.md"
+      ],
+      "acceptance": [
+        "Every path the rewritten docs name exists (doc path check)",
+        "PROGRESS.md and SCORECARD.md regenerated",
+        "Phase gate passes with --probe"
+      ],
+      "test": "A doc path check that fails on a path the docs name but the tree lacks",
+      "reqs": [
+        "NFR-09",
+        "G7"
+      ],
+      "findings": [],
+      "spec": "prd/workflow-log/decisions/DR-06.md",
+      "deps_install": false,
+      "status": "todo",
+      "commit": null,
+      "notes": "",
+      "completed_at": null
     }
   ]
 }

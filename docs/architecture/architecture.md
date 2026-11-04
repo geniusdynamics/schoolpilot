@@ -1,5 +1,10 @@
 # SchoolPilot3 - Architecture Overview
 
+> **Status (2026-11-04):** this overview describes the 2025 architecture. Module boundaries are now governed by
+> [DR-06](../prd/workflow-log/decisions/DR-06.md) (modules own their bounded contexts over a shared kernel, phase P7). The
+> "self-contained" module claims below describe that target, not today's code; see
+> [`docs/audit/2026-11-modularity`](../audit/2026-11-modularity/README.md).
+
 ## 1. Introduction
 
 This document outlines the high-level architecture of SchoolPilot3, a comprehensive school management system. SchoolPilot3 is a React-based application designed to be robust, maintainable, and scalable. It features a modular architecture with a sophisticated data layer supporting multiple database providers, a plugin system for extensibility, and a tabbed workspace for enhanced user experience.
