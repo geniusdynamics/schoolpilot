@@ -1,285 +1,172 @@
-import React, { useState, useMemo, useCallback } from 'react';
+// ABOUTME: The analytics export screen: the downloaded file is built from the same computed rows the
+// ABOUTME: preview shows, with subject and class filters narrowing the figures they name.
+
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DocumentReportIcon, ArrowDownTrayIcon, AcademicCapIcon, BookOpenIcon, UserGroupIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+
+import {
+  AcademicCapIcon,
+  ArrowDownTrayIcon,
+  BookOpenIcon,
+  CheckCircleIcon,
+  DocumentReportIcon,
+  ExclamationTriangleIcon,
+  UserGroupIcon,
+} from '@/components/ui/icons';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Select, { SelectOption } from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { DashboardMetric } from '@/components/ModuleDashboardShell';
-import { useAnalyticsData } from '../../data/useAnalyticsData';
 
-import { logger } from '@/utils/logging';
+import {
+  analyticsRowsToCsv,
+  buildAnalyticsExportRows,
+  type AnalyticsExportDataType,
+  type AnalyticsExportRow,
+} from '../../data/analyticsExport';
+import { AnalyticsEmptyCard, AnalyticsScopeCard } from './AnalyticsScopeCard';
+import { useReportAnalyticsScope } from './useReportAnalyticsScope';
 
-type ExportDataType = 'teachers' | 'subjects' | 'classes' | 'trends';
 type ExportFormat = 'csv' | 'json' | 'pdf';
 
 interface ExportConfig {
-  dataType: ExportDataType;
+  dataType: AnalyticsExportDataType;
   format: ExportFormat;
-  dateFrom: string;
-  dateTo: string;
-  subjectFilter: string;
-  classFilter: string;
-  teacherFilter: string;
+  subjectId: string;
+  classId: string;
+  teacherId: string;
 }
 
-interface ExportHistoryEntry {
-  id: string;
-  type: string;
-  format: string;
-  date: string;
-  status: 'completed' | 'processing' | 'failed';
-  size?: string;
+const DATA_TYPES: readonly { readonly value: AnalyticsExportDataType; readonly label: string }[] = [
+  { value: 'teachers', label: 'Teacher performance' },
+  { value: 'subjects', label: 'Subject performance' },
+  { value: 'classes', label: 'Class performance' },
+  { value: 'trends', label: 'Trend analysis' },
+];
+
+function download(name: string, mimeType: string, content: string): void {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = name;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 const AnalyticsExportPage: React.FC = () => {
   const { t } = useTranslation('analytics');
-  const {
-    teacherAnalytics,
-    subjectPassRates,
-    classPerformances,
-    loading,
-    exportReport,
-  } = useAnalyticsData();
+  const { scopeState, analytics, hasYear, loading, error } = useReportAnalyticsScope('optional');
 
   const [config, setConfig] = useState<ExportConfig>({
     dataType: 'teachers',
     format: 'csv',
-    dateFrom: new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString().split('T')[0],
-    dateTo: new Date().toISOString().split('T')[0],
-    subjectFilter: '',
-    classFilter: '',
-    teacherFilter: '',
+    subjectId: '',
+    classId: '',
+    teacherId: '',
   });
+  const [exported, setExported] = useState(false);
 
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportSuccess, setExportSuccess] = useState(false);
+  const filters = useMemo(
+    () => ({
+      subjectId: config.subjectId,
+      classId: config.classId,
+      teacherId: config.teacherId,
+    }),
+    [config.classId, config.subjectId, config.teacherId]
+  );
 
-  // Gather unique values for filters
-  const allSubjects = useMemo(() => {
-    const subjects = new Set<string>();
-    (subjectPassRates || []).forEach((s) => subjects.add(s.subjectName));
-    (teacherAnalytics || []).forEach((ta) => {
-      if (ta.subjectName) subjects.add(ta.subjectName);
-    });
-    return Array.from(subjects).sort();
-  }, [subjectPassRates, teacherAnalytics]);
+  const trendScope = config.dataType === 'trends';
+  const activeFilters = useMemo(() => (trendScope ? {} : filters), [trendScope, filters]);
 
-  const allClasses = useMemo(() => {
-    const classes = new Set<string>();
-    (classPerformances || []).forEach((c) => classes.add(c.className));
-    return Array.from(classes).sort();
-  }, [classPerformances]);
+  const previewRows = useMemo(
+    () => buildAnalyticsExportRows(analytics, config.dataType, activeFilters),
+    [analytics, config.dataType, activeFilters]
+  );
 
-  const allTeachers = useMemo(() => {
-    return (teacherAnalytics || []).map((ta) => ta.teacherName).sort();
-  }, [teacherAnalytics]);
+  const subjectOptions: SelectOption[] = [
+    { value: '', label: 'All subjects' },
+    ...analytics.subjectPassRates
+      .map((subject) => ({ value: subject.subjectId, label: subject.subjectName }))
+      .sort((left, right) => left.label.localeCompare(right.label)),
+  ];
 
-  // Metrics
+  const classOptions: SelectOption[] = [
+    { value: '', label: 'All classes' },
+    ...analytics.classPerformances
+      .map((row) => ({ value: row.classId, label: `${row.className}${row.streamName ? ` · ${row.streamName}` : ''}` }))
+      .sort((left, right) => left.label.localeCompare(right.label)),
+  ];
+
+  const teacherOptions: SelectOption[] = [
+    { value: '', label: 'All teachers' },
+    ...analytics.teacherAnalytics
+      .map((teacher) => ({ value: teacher.teacherId, label: teacher.teacherName }))
+      .sort((left, right) => left.label.localeCompare(right.label)),
+  ];
+
   const metrics: DashboardMetric[] = [
     {
       key: 'teacher-records',
-      label: 'Teacher Records',
-      value: (teacherAnalytics || []).length,
+      label: 'Teacher records',
+      value: analytics.teacherAnalytics.length,
       icon: <AcademicCapIcon className="h-6 w-6 text-primary-700" />,
     },
     {
       key: 'subject-records',
-      label: 'Subject Records',
-      value: (subjectPassRates || []).length,
+      label: 'Subject records',
+      value: analytics.subjectPassRates.length,
       icon: <BookOpenIcon className="h-6 w-6 text-emerald-700" />,
     },
     {
       key: 'class-records',
-      label: 'Class Records',
-      value: (classPerformances || []).length,
+      label: 'Class records',
+      value: analytics.classPerformances.length,
       icon: <UserGroupIcon className="h-6 w-6 text-violet-700" />,
     },
     {
-      key: 'export-ready',
-      label: 'Export Ready',
-      value: 'Yes',
-      description: 'All data validated and available',
+      key: 'preview-rows',
+      label: 'Rows in preview',
+      value: previewRows.length,
+      description: previewRows.length === 0 ? 'Nothing matches this configuration' : 'Ready to download',
       icon: <CheckCircleIcon className="h-6 w-6 text-teal-700" />,
     },
   ];
 
-  // Data type options
-  const dataTypeOptions: SelectOption[] = [
-    { value: 'teachers', label: 'Teacher Performance' },
-    { value: 'subjects', label: 'Subject Performance' },
-    { value: 'classes', label: 'Class Performance' },
-    { value: 'trends', label: 'Trend Analysis' },
-  ];
+  const previewColumns: DataGridColumn<AnalyticsExportRow>[] = useMemo(() => {
+    if (previewRows.length === 0) return [];
+    return Object.keys(previewRows[0])
+      .filter((key) => key !== 'id')
+      .map((key) => ({
+        key,
+        header: key,
+        sortable: true,
+        align: key.includes('Rate') || key.includes('Score') || key.includes('Value') || key.includes('Change') || key === 'Students' ? ('center' as const) : ('left' as const),
+        render: (value: string) => {
+          if (value === 'Improving') return <span className="text-emerald-600 font-medium text-sm">{value}</span>;
+          if (value === 'Declining') return <span className="text-rose-600 font-medium text-sm">{value}</span>;
+          if (value === 'Not recorded' || value === '—') return <span className="text-surface-muted-fg text-sm">{value}</span>;
+          return <span className="text-sm text-surface-foreground">{value}</span>;
+        },
+      }));
+  }, [previewRows]);
 
-  // Format options
-  const formatOptions: SelectOption[] = [
-    { value: 'csv', label: 'CSV' },
-    { value: 'json', label: 'JSON' },
-    { value: 'pdf', label: 'PDF' },
-  ];
-
-  // Subject filter options
-  const subjectFilterOptions: SelectOption[] = [
-    { value: '', label: 'All Subjects' },
-    ...allSubjects.map((s) => ({ value: s, label: s })),
-  ];
-
-  // Class filter options
-  const classFilterOptions: SelectOption[] = [
-    { value: '', label: 'All Classes' },
-    ...allClasses.map((c) => ({ value: c, label: c })),
-  ];
-
-  // Teacher filter options
-  const teacherFilterOptions: SelectOption[] = [
-    { value: '', label: 'All Teachers' },
-    ...allTeachers.map((t2) => ({ value: t2, label: t2 })),
-  ];
-
-  // Generate preview data based on selected data type
-  const previewData = useMemo(() => {
-    switch (config.dataType) {
-      case 'teachers':
-        return (teacherAnalytics || []).map((ta, index) => ({
-          id: `teacher-${index}`,
-          Teacher: ta.teacherName,
-          Subject: ta.subjectName || 'N/A',
-          Classes: (ta.classPerformance || []).length,
-          Students: (ta.classPerformance || []).reduce((s, c) => s + c.studentCount, 0),
-          'Avg Score': `${Math.round((ta.classPerformance || []).reduce((s, c) => s + c.averageScore, 0) / ((ta.classPerformance || []).length || 1))}%`,
-          'Pass Rate': `${Math.round((ta.passRates || []).reduce((s, p) => s + p.passRate, 0) / ((ta.passRates || []).length || 1))}%`,
-          Attendance: `${Math.round(ta.attendanceRate || 0)}%`,
-        }));
-      case 'subjects':
-        return (subjectPassRates || []).map((sp, index) => ({
-          id: `subject-${index}`,
-          Subject: sp.subjectName,
-          Students: sp.studentCount,
-          Exams: sp.examCount,
-          'Pass Rate': `${sp.passRate}%`,
-          'Avg Score': `${sp.averageScore}%`,
-          Highest: sp.highestScore,
-          Lowest: sp.lowestScore,
-          Trend: sp.trend,
-        }));
-      case 'classes':
-        return (classPerformances || []).map((cp, index) => ({
-          id: `class-${index}`,
-          Class: cp.className,
-          Stream: cp.streamName || 'N/A',
-          Students: cp.studentCount,
-          'Avg Score': `${cp.averageScore}%`,
-          'Pass Rate': `${cp.passRate}%`,
-          Attendance: `${cp.attendanceRate}%`,
-          Trend: cp.trend,
-        }));
-      case 'trends':
-        return [
-          { id: 'pass-rate', Metric: 'Pass Rate', 'Current Value': '72%', 'Previous': '68%', Change: '+4%', Status: 'Improving' },
-          { id: 'average-score', Metric: 'Average Score', 'Current Value': '65%', 'Previous': '67%', Change: '-2%', Status: 'Declining' },
-          { id: 'attendance', Metric: 'Attendance', 'Current Value': '89%', 'Previous': '87%', Change: '+2%', Status: 'Improving' },
-        ];
-      default:
-        return [];
+  const handleExport = () => {
+    if (previewRows.length === 0 || config.format === 'pdf') return;
+    setExported(false);
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (config.format === 'csv') {
+      download(`analytics-${config.dataType}-${stamp}.csv`, 'text/csv;charset=utf-8', analyticsRowsToCsv(previewRows));
+    } else {
+      const body = previewRows.map((row) =>
+        Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'id'))
+      );
+      download(`analytics-${config.dataType}-${stamp}.json`, 'application/json', JSON.stringify(body, null, 2));
     }
-  }, [config.dataType, teacherAnalytics, subjectPassRates, classPerformances]);
-
-  // Preview columns (dynamic based on data type)
-  const previewColumns: DataGridColumn<Record<string, string>>[] = useMemo(() => {
-    if (previewData.length === 0) return [];
-    const keys = Object.keys(previewData[0]).filter((key) => key !== 'id');
-    return keys.map((key) => ({
-      key,
-      header: key,
-      sortable: true,
-      align: key.includes('Rate') || key.includes('Score') || key.includes('Value') || key.includes('Change') ? 'center' as const : 'left' as const,
-      render: (value: string) => {
-        if (value === 'up' || value === 'Improving') {
-          return <span className="text-emerald-600 font-medium text-sm">{value}</span>;
-        }
-        if (value === 'down' || value === 'Declining') {
-          return <span className="text-rose-600 font-medium text-sm">{value}</span>;
-        }
-        if (value === 'stable' || value === 'Stable') {
-          return <span className="text-surface-muted-fg font-medium text-sm">{value}</span>;
-        }
-        return <span className="text-sm text-surface-foreground">{value}</span>;
-      },
-    }));
-  }, [previewData]);
-
-  // Handle export
-  const handleExport = useCallback(async () => {
-    setIsExporting(true);
-    setExportSuccess(false);
-
-    try {
-      await exportReport(config.format as any, config.dataType);
-
-      // Simulate export completion
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setExportSuccess(true);
-
-      // Reset success state after 3 seconds
-      setTimeout(() => setExportSuccess(false), 3000);
-    } catch (error) {
-      logger.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  }, [config.format, config.dataType, exportReport]);
-
-  // Recent exports history (placeholder)
-  const recentExports: ExportHistoryEntry[] = [
-    { id: '1', type: 'Teacher Performance', format: 'PDF', date: '2025-03-15', status: 'completed', size: '2.3 MB' },
-    { id: '2', type: 'Subject Analytics', format: 'CSV', date: '2025-03-10', status: 'completed', size: '456 KB' },
-    { id: '3', type: 'Class Report', format: 'JSON', date: '2025-03-05', status: 'completed', size: '1.1 MB' },
-    { id: '4', type: 'Trend Analysis', format: 'PDF', date: '2025-02-28', status: 'failed' },
-  ];
-
-  const historyColumns: DataGridColumn<ExportHistoryEntry>[] = [
-    {
-      key: 'type',
-      header: 'Report Type',
-      sortable: true,
-      render: (value: string) => (
-        <div className="flex items-center gap-2">
-          <DocumentReportIcon className="h-4 w-4 text-primary-600" />
-          <span className="text-sm text-surface-foreground">{value}</span>
-        </div>
-      ),
-    },
-    { key: 'format', header: 'Format', sortable: true, align: 'center' },
-    { key: 'date', header: 'Date', sortable: true, align: 'center' },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      align: 'center',
-      render: (value: string) => (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-          value === 'processing' ? 'bg-amber-100 text-amber-700' :
-          'bg-rose-100 text-rose-700'
-        }`}>
-          {value === 'completed' ? <CheckCircleIcon className="h-3 w-3" /> :
-           value === 'failed' ? <ExclamationTriangleIcon className="h-3 w-3" /> : null}
-          {value.charAt(0).toUpperCase() + value.slice(1)}
-        </span>
-      ),
-    },
-    {
-      key: 'size',
-      header: 'Size',
-      sortable: true,
-      align: 'center',
-      render: (value: string | undefined) => (
-        <span className="text-sm text-surface-muted-fg">{value || '-'}</span>
-      ),
-    },
-  ];
+    setExported(true);
+  };
 
   if (loading) {
     return (
@@ -292,191 +179,150 @@ const AnalyticsExportPage: React.FC = () => {
   return (
     <ModuleDashboardShell
       title={t('export.title')}
-      subtitle="Configure and export analytics reports in multiple formats. Select data type, date range, and filters to customize your exports."
+      subtitle="Download the analytics above as the rows this page computed. Nothing is exported that the screen cannot show."
       heroIcon={<DocumentReportIcon className="h-8 w-8 text-white" />}
       metrics={metrics}
     >
-      {/* Export Configuration Form */}
-      <Card title="Export Configuration" className="border-slate-200 bg-surface-card shadow-sm">
-        <div className="space-y-6">
-          {/* Data Type and Format */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-surface-foreground mb-2">
-                {t('export.reportType')}
-              </label>
-              <Select
-                value={config.dataType}
-                onChange={(val) => setConfig((prev) => ({ ...prev, dataType: val as ExportDataType }))}
-                options={dataTypeOptions}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-surface-foreground mb-2">
-                {t('export.format')}
-              </label>
-              <div className="flex gap-2">
-                {formatOptions.map((fmt) => (
-                  <Button
-                    key={fmt.value}
-                    variant={config.format === fmt.value ? 'primary' : 'outline'}
-                    onClick={() => setConfig((prev) => ({ ...prev, format: fmt.value as ExportFormat }))}
-                  >
-                    {fmt.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+      <AnalyticsScopeCard scope={scopeState} period="optional" />
 
-          {/* Date Range */}
-          <div>
-            <label className="block text-sm font-medium text-surface-foreground mb-2">Date Range</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-surface-muted-fg mb-1">From</label>
-                <input
-                  type="date"
-                  value={config.dateFrom}
-                  onChange={(e) => setConfig((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full px-3 py-2 border border-surface-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-surface-muted-fg mb-1">To</label>
-                <input
-                  type="date"
-                  value={config.dateTo}
-                  onChange={(e) => setConfig((prev) => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full px-3 py-2 border border-surface-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
+      {error !== null && (
+        <AnalyticsEmptyCard title="Export" message="The academic record could not be read, so there is nothing to export." />
+      )}
 
-          {/* Filters */}
-          <div>
-            <label className="block text-sm font-medium text-surface-foreground mb-2">Filters</label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-surface-muted-fg mb-1">Subject</label>
-                <Select
-                  value={config.subjectFilter}
-                  onChange={(val) => setConfig((prev) => ({ ...prev, subjectFilter: val as string }))}
-                  options={subjectFilterOptions}
-                />
+      {error === null && !hasYear && (
+        <AnalyticsEmptyCard title="Export" message="No academic year is set up, so there is nothing to export." />
+      )}
+
+      {error === null && hasYear && (
+        <>
+          <Card title="Export configuration" className="border-slate-200 bg-surface-card shadow-sm">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-surface-foreground mb-2">{t('export.reportType')}</label>
+                  <Select
+                    value={config.dataType}
+                    onValueChange={(value) =>
+                      setConfig((prev) => ({ ...prev, dataType: (Array.isArray(value) ? value[0] : value) as AnalyticsExportDataType }))
+                    }
+                    options={DATA_TYPES.map((option) => ({ ...option }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-surface-foreground mb-2">{t('export.format')}</label>
+                  <div className="flex gap-2">
+                    {(['csv', 'json', 'pdf'] as ExportFormat[]).map((format) => (
+                      <Button
+                        key={format}
+                        variant={config.format === format ? 'primary' : 'outline'}
+                        onClick={() => setConfig((prev) => ({ ...prev, format }))}
+                        disabled={format === 'pdf'}
+                        title={format === 'pdf' ? 'PDF export is not available; choose CSV or JSON.' : undefined}
+                      >
+                        {format.toUpperCase()}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-surface-muted-fg mt-1">PDF export is not available; CSV and JSON download directly.</p>
+                </div>
               </div>
+
               <div>
-                <label className="block text-xs text-surface-muted-fg mb-1">Class</label>
-                <Select
-                  value={config.classFilter}
-                  onChange={(val) => setConfig((prev) => ({ ...prev, classFilter: val as string }))}
-                  options={classFilterOptions}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-surface-muted-fg mb-1">Teacher</label>
-                <Select
-                  value={config.teacherFilter}
-                  onChange={(val) => setConfig((prev) => ({ ...prev, teacherFilter: val as string }))}
-                  options={teacherFilterOptions}
-                />
+                <label className="block text-sm font-medium text-surface-foreground mb-2">Filters</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs text-surface-muted-fg mb-1">Subject</label>
+                    <Select
+                      value={config.subjectId}
+                      onValueChange={(value) => setConfig((prev) => ({ ...prev, subjectId: String(value) }))}
+                      options={subjectOptions}
+                      disabled={trendScope || analytics.subjectPassRates.length === 0}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-surface-muted-fg mb-1">Class</label>
+                    <Select
+                      value={config.classId}
+                      onValueChange={(value) => setConfig((prev) => ({ ...prev, classId: String(value) }))}
+                      options={classOptions}
+                      disabled={trendScope || analytics.classPerformances.length === 0}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-surface-muted-fg mb-1">Teacher</label>
+                    <Select
+                      value={config.teacherId}
+                      onValueChange={(value) => setConfig((prev) => ({ ...prev, teacherId: String(value) }))}
+                      options={teacherOptions}
+                      disabled={trendScope || analytics.teacherAnalytics.length === 0}
+                    />
+                  </div>
+                </div>
+                {trendScope && (
+                  <p className="text-xs text-surface-muted-fg mt-2">
+                    Trend rows are the whole scope the filter bar selected; subject, class and teacher filters do not narrow a period series.
+                  </p>
+                )}
               </div>
             </div>
-          </div>
+          </Card>
 
-          {/* Quick Date Range Buttons */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-surface-muted-fg self-center mr-2">Quick Range:</span>
-            {[
-              { label: 'Last 7 Days', days: 7 },
-              { label: 'Last 30 Days', days: 30 },
-              { label: 'Last 3 Months', days: 90 },
-              { label: 'Last 6 Months', days: 180 },
-              { label: 'This Year', days: 365 },
-            ].map((range) => {
-              const from = new Date();
-              from.setDate(from.getDate() - range.days);
-              return (
-                <Button
-                  key={range.label}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    setConfig((prev) => ({
-                      ...prev,
-                      dateFrom: from.toISOString().split('T')[0],
-                      dateTo: new Date().toISOString().split('T')[0],
-                    }))
-                  }
-                >
-                  {range.label}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      </Card>
-
-      {/* Preview Table */}
-      <Card
-        title={`Preview: ${dataTypeOptions.find((o) => o.value === config.dataType)?.label || ''}`}
-        className="border-slate-200 bg-surface-card shadow-sm"
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm text-surface-muted-fg">
-            Showing {previewData.length} record{previewData.length !== 1 ? 's' : ''} that will be exported
-          </p>
-          <span className="text-xs text-surface-muted-fg bg-surface-accent px-2 py-1 rounded">
-            Format: {config.format?.toUpperCase() ?? ''}
-          </span>
-        </div>
-        <DataGrid
-          columns={previewColumns}
-          data={previewData}
-          loading={loading}
-          sortable
-          filterable
-        />
-      </Card>
-
-      {/* Export Action */}
-      <Card className="border-slate-200 bg-surface-card shadow-sm">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-surface-foreground">Ready to Export</h3>
-            <p className="text-xs text-surface-muted-fg mt-1">
-              {previewData.length} records will be exported as {config.format?.toUpperCase() ?? ''}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {exportSuccess && (
-              <span className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
-                <CheckCircleIcon className="h-4 w-4" />
-                Export complete!
+          <Card
+            title={`Preview: ${DATA_TYPES.find((option) => option.value === config.dataType)?.label ?? ''}`}
+            className="border-slate-200 bg-surface-card shadow-sm"
+          >
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-sm text-surface-muted-fg">
+                Showing {previewRows.length} record{previewRows.length === 1 ? '' : 's'} that will be exported
+              </p>
+              <span className="text-xs text-surface-muted-fg bg-surface-accent px-2 py-1 rounded">
+                Format: {config.format.toUpperCase()}
               </span>
+            </div>
+            {previewRows.length === 0 ? (
+              <div className="flex items-start gap-2 text-sm text-surface-muted-fg">
+                <ExclamationTriangleIcon className="h-4 w-4 mt-0.5" />
+                <span>No computed row matches this scope and filter combination.</span>
+              </div>
+            ) : (
+              <DataGrid columns={previewColumns} data={previewRows} loading={loading} sortable filterable keyField="id" />
             )}
-            <Button
-              variant="primary"
-              leftIcon={isExporting ? <Spinner size="sm" /> : <ArrowDownTrayIcon className="h-5 w-5" />}
-              onClick={handleExport}
-              disabled={isExporting || previewData.length === 0}
-            >
-              {isExporting ? 'Exporting...' : t('export.download')}
-            </Button>
-          </div>
-        </div>
-      </Card>
+          </Card>
 
-      {/* Recent Exports History */}
-      <Card title="Recent Exports" className="border-slate-200 bg-surface-card shadow-sm">
-        <DataGrid
-          columns={historyColumns}
-          data={recentExports}
-          sortable
-          filterable={false}
-        />
-      </Card>
+          <Card className="border-slate-200 bg-surface-card shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-surface-foreground">Ready to export</h3>
+                <p className="text-xs text-surface-muted-fg mt-1">
+                  {previewRows.length} record{previewRows.length === 1 ? '' : 's'} will download as {config.format.toUpperCase()}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {exported && (
+                  <span className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
+                    <CheckCircleIcon className="h-4 w-4" />
+                    Download started
+                  </span>
+                )}
+                <Button
+                  variant="primary"
+                  leftIcon={<ArrowDownTrayIcon className="h-5 w-5" />}
+                  onClick={handleExport}
+                  disabled={previewRows.length === 0 || config.format === 'pdf'}
+                >
+                  {t('export.download')}
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Recent exports" className="border-slate-200 bg-surface-card shadow-sm">
+            <p className="text-sm text-surface-muted-fg">
+              Export history is not recorded. Each download goes straight to your device, so this page has no previous exports to list.
+            </p>
+          </Card>
+        </>
+      )}
     </ModuleDashboardShell>
   );
 };

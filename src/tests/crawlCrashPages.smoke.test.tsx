@@ -68,6 +68,34 @@ vi.mock('@/modules/reports/data/useAnalyticsData', () => {
   return { useAnalyticsData: hook, default: hook };
 });
 
+// The analytics pages now read the shared academic scope. The smoke harness seeds no canonical
+// academic year, so the bar is stubbed to a ready year and the page renders its own data state.
+vi.mock('@/academic-scope', () => {
+  const scope = {
+    effective: { yearId: 'year-smoke', levelId: '', classGroupId: '', periodId: '' },
+    year: null,
+    years: [],
+    levelsOfYear: [],
+    streams: [],
+    periodsOfYear: [],
+    adjusted: [],
+  };
+  return {
+    useAcademicScope: () => ({
+      scope,
+      selection: {},
+      setYear: () => {},
+      setLevel: () => {},
+      setStream: () => {},
+      setPeriod: () => {},
+      reset: () => {},
+      status: 'ready',
+      error: null,
+    }),
+    AcademicScopeFilterBar: () => null,
+  };
+});
+
 vi.mock('@/modules/admissions/data/useAdmissionsData', () => {
   const hook = () => ({
     applications: seed.applications,
